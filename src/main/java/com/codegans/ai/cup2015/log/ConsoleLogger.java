@@ -2,6 +2,7 @@ package com.codegans.ai.cup2015.log;
 
 import com.codegans.ai.cup2015.Navigator;
 import com.codegans.ai.cup2015.action.Action;
+import com.codegans.ai.cup2015.model.TileInfo;
 import model.Car;
 import model.TileType;
 import model.World;
@@ -30,10 +31,10 @@ public class ConsoleLogger implements Logger {
 
     @Override
     public void waypoint(Car car) {
-        int x = Navigator.getInstance(null, null).positionX(car);
-        int y = Navigator.getInstance(null, null).positionY(car);
+        TileInfo info = Navigator.getInstance(null, null).getCurrentTile(car);
+        double speed = StrictMath.hypot(car.getSpeedX(), car.getSpeedY());
 
-        printf("Car at: [%d,%d] (%5.3f;%5.3f). Next waypoint #%d: (%d;%d)%n", x, y, car.getX(), car.getY(), car.getNextWaypointIndex(), car.getNextWaypointX(), car.getNextWaypointY());
+        printf("Car with %.1f%% at: [%d,%d] (%5.3f;%5.3f). Speed: %.3f/%.3f. Engine: %.3f. Waypoint #%d: (%d;%d)%n", car.getDurability() * 100, info.x, info.y, car.getX(), car.getY(), speed, car.getAngularSpeed(), car.getEnginePower(), car.getNextWaypointIndex(), car.getNextWaypointX(), car.getNextWaypointY());
     }
 
     @Override

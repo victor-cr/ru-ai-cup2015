@@ -68,6 +68,29 @@ public class DirectionUtil {
         }
     }
 
+    public static Direction relative(Direction in, Direction out) {
+        if (in == out) {
+            return Direction.DOWN;
+        }
+
+        if (in == opposite(out)) {
+            return Direction.UP;
+        }
+
+        switch (in) {
+            case DOWN:
+                return out == Direction.LEFT ? Direction.RIGHT : Direction.LEFT;
+            case LEFT:
+                return out == Direction.UP ? Direction.RIGHT : Direction.LEFT;
+            case UP:
+                return out == Direction.RIGHT ? Direction.RIGHT : Direction.LEFT;
+            case RIGHT:
+                return out == Direction.DOWN ? Direction.RIGHT : Direction.LEFT;
+            default:
+                return null;
+        }
+    }
+
     public static Set<Direction> fromTileType(TileType type) {
         switch (type) {
             case EMPTY:

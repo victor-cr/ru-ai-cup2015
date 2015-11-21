@@ -1,5 +1,6 @@
-package com.codegans.ai.cup2015;
+package com.codegans.ai.cup2015.decision;
 
+import com.codegans.ai.cup2015.Navigator;
 import com.codegans.ai.cup2015.action.Action;
 import model.Car;
 import model.Game;

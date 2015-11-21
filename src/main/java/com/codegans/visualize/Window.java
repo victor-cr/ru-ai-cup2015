@@ -1,10 +1,12 @@
 package com.codegans.visualize;
 
 import com.codegans.ai.cup2015.Navigator;
+import com.codegans.ai.cup2015.model.Marker;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
@@ -18,6 +20,8 @@ import model.Projectile;
 import model.TileType;
 import model.Unit;
 import model.World;
+
+import java.util.Collection;
 
 /**
  * JavaDoc here
@@ -59,14 +63,18 @@ public class Window extends Application {
             Navigator navigator = Navigator.getInstance(game, world);
 
             for (int i = 0; i < world.getWaypoints().length; i++) {
-                navigator.getPathNew(setupUnit(event.getSceneX() - padding, event.getSceneY() - padding, 5, 0), i, 10).forEach(e -> {
+                Collection<Marker> path = navigator.getPath(setupUnit(event.getSceneX() - padding, event.getSceneY() - padding, 5, 0), i, 8);
+                int j = 0;
+
+                for (Marker e : path) {
+                    Circle circle = new Circle(padding + e.leftX, padding + e.leftY, 5, Color.web("red"));
                     Line marker = new Line(padding + e.leftX, padding + e.leftY, padding + e.rightX, padding + e.rightY);
 
-                    marker.setStroke(Color.web("red", 0.5));
+                    marker.setStroke(Color.web("red", 1.0D - (j++ + 3.0D) / (path.size() + 3.0D)));
                     marker.setStrokeWidth(4);
 
-                    markers.getChildren().add(marker);
-                });
+                    markers.getChildren().addAll(marker, circle);
+                }
             }
         });
 

@@ -30,7 +30,12 @@ task fixSources(type: Sync, dependsOn: copySources) {
   into "$buildDir/sources"
   from "$buildDir/tmpSources"
   eachFile { detail ->
-    detail.file.bytes = new String(detail.file.bytes, "UTF-8").replace(packageStatement, "//" + packageStatement).replace(importStatement, "//" + importStatement).bytes
+    detail.file.text = detail.file.text
+            .replace(packageStatement, "//" + packageStatement)
+            .replace(importStatement, "//" + importStatement)
+            .replaceAll("(?ms)/\\*\\*.*?\\*/", "")
+            .replaceAll("//.*", "")
+
   }
 }
 

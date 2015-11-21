@@ -2,6 +2,8 @@ package com.codegans.ai.cup2015.action;
 
 import model.Move;
 
+import java.util.Formatter;
+
 /**
  * JavaDoc here
  *
@@ -24,6 +26,6 @@ public class SpeedAction extends BaseAction<SpeedAction> {
 
     @Override
     public String toString() {
-        return super.toString() + '(' + acceleration + ')';
+        return super.toString() + new Formatter().format("(%.3f)", acceleration);
     }
 }

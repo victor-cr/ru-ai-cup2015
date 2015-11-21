@@ -14,27 +14,21 @@ import static java.lang.StrictMath.PI;
  * @since 19.11.2015 10:32
  */
 public class MoveAction extends BaseAction<MoveAction> {
-    private final Unit unit;
-    private final double x;
-    private final double y;
+    private final double angle;
 
     public MoveAction(int score, Unit unit, double x, double y) {
         super(score);
 
-        this.unit = unit;
-        this.x = x;
-        this.y = y;
+        this.angle = unit.getAngleTo(x, y) * 32 / PI;
     }
 
     @Override
     public void apply(Move move) {
-        double angle = unit.getAngleTo(x, y);
-
-        move.setWheelTurn(angle * 32.0D / PI);
+        move.setWheelTurn(angle);
     }
 
     @Override
     public String toString() {
-        return super.toString() + new Formatter().format("->(%5.3f;%5.3f)", x, y);
+        return super.toString() + new Formatter().format("(%.5f)", angle);
     }
 }

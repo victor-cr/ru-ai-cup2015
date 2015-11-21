@@ -2,6 +2,9 @@ package com.codegans.ai.cup2015;
 
 import com.codegans.ai.cup2015.log.Logger;
 import com.codegans.ai.cup2015.log.LoggerFactory;
+import com.codegans.ai.cup2015.model.Marker;
+import com.codegans.ai.cup2015.model.TileInfo;
+import model.Car;
 import model.Direction;
 import model.Game;
 import model.TileType;
@@ -12,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +24,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.StrictMath.PI;
-import static java.lang.StrictMath.hypot;
+import static java.lang.StrictMath.cos;
+import static java.lang.StrictMath.sin;
 
 /**
  * JavaDoc here
@@ -52,35 +57,6 @@ public class Navigator {
         return INSTANCE;
     }
 
-    public Collection<Direction> getPath(int startX, int startY, int nextWaypointIndex, int size) {
-        LOG.printf("Get %d tile(s) path from (%d;%d;#%d)%n", size, startX, startY, nextWaypointIndex);
-
-        Collection<Direction> path = new ArrayList<>(size);
-        Tile current = startTile;
-
-        while (current != startTile.prev && (current.x != startX || current.y != startY || current.waypointIndex != nextWaypointIndex)) {
-            current = current.next;
-        }
-
-        if (current.x == startX && current.y == startY && current.waypointIndex == nextWaypointIndex) {
-            path.add(current.in);
-
-            for (int i = 0; current != null && i < size; i++) {
-                path.add(current.out);
-                current = current.next;
-            }
-        }
-
-        return path;
-    }
-
-    public Collection<Direction> getPath(Unit unit, int nextWaypointIndex, int size) {
-        int startX = (int) (unit.getX() / tileSize);
-        int startY = (int) (unit.getY() / tileSize);
-
-        return getPath(startX, startY, nextWaypointIndex, size);
-    }
-
     public int positionX(Unit unit) {
         return (int) (unit.getX() / tileSize);
     }
@@ -89,45 +65,79 @@ public class Navigator {
         return (int) (unit.getY() / tileSize);
     }
 
-    public Collection<Mark> getPathNew(Unit unit, int nextWaypointIndex, int size) {
-        int startX = (int) (unit.getX() / tileSize);
-        int startY = (int) (unit.getY() / tileSize);
+    public TileInfo getCurrentTile(Car car) {
+        Tile current = findTile(car.getX(), car.getY(), car.getNextWaypointIndex());
 
-        double speed = hypot(unit.getSpeedX(), unit.getSpeedY());
+        return new TileInfo(0, current.x, current.y, current.in, current.out);
+    }
 
-        Collection<Mark> path = new ArrayList<>(size);
+    public TileInfo getNextTurnTile(Car car) {
+        Tile current = findTile(car.getX(), car.getY(), car.getNextWaypointIndex());
+        int i = 0;
+
+        do {
+            i++;
+            current = current.next;
+        } while (current.prev.out == current.out);
+
+        return new TileInfo(i, current.x, current.y, current.in, current.out);
+    }
+
+    public Collection<Marker> getPath(Unit unit, int nextWaypointIndex, int size) {
+        double x = unit.getX();
+        double y = unit.getY();
+
+        Tile current = findTile(x, y, nextWaypointIndex);
+
+        if (current != null) {
+            int parts = 10;
+            Collection<Marker> path = new ArrayList<>(size * parts);
+
+            for (int i = 0; i < size; i++) {
+                if (current.in == DirectionUtil.opposite(current.out)) {
+                    path.addAll(linear(current.out, current.x, current.y, parts));
+                } else {
+                    path.addAll(circular(current.in, current.out, current.x, current.y, parts));
+                }
+
+                current = current.next;
+            }
+
+            for (Iterator<Marker> i = path.iterator(); i.hasNext(); ) {
+                Marker e = i.next();
+
+                if ((e.rightX - e.leftX) * (y - e.leftY) - (e.rightY - e.leftY) * (x - e.leftX) > 0) {
+                    i.remove();
+                } else {
+                    break;
+                }
+            }
+
+            return path;
+        }
+
+        return Collections.emptySet();
+    }
+
+    private Tile findTile(double x, double y, int nextWaypointIndex) {
+        int startX = (int) (x / tileSize);
+        int startY = (int) (y / tileSize);
+
+        return findTile(startX, startY, nextWaypointIndex);
+    }
+
+    private Tile findTile(int x, int y, int nextWaypointIndex) {
         Tile current = startTile;
 
-        while (current != startTile.prev && (current.x != startX || current.y != startY || current.waypointIndex != nextWaypointIndex)) {
+        while (current != startTile.prev && (current.x != x || current.y != y || current.waypointIndex != nextWaypointIndex)) {
             current = current.next;
         }
 
-        if (current.x == startX && current.y == startY && current.waypointIndex == nextWaypointIndex) {
-            if (current.in == DirectionUtil.opposite(current.out)) {
-                return linear(current.out, current.x, current.y, 10);
-            }
-
-            int x = current.x;
-            int y = current.y;
-
-            return Arrays.asList(current.in, current.out).stream()
-                    .map(e -> {
-                        switch (e) {
-                            case DOWN:
-                                return new Mark(x * tileSize + tileMargin, (y + 1) * tileSize, (x + 1) * tileSize - tileMargin, (y + 1) * tileSize);
-                            case LEFT:
-                                return new Mark(x * tileSize, y * tileSize + tileMargin, x * tileSize, (y + 1) * tileSize - tileMargin);
-                            case UP:
-                                return new Mark(x * tileSize + tileMargin, y * tileSize, (x + 1) * tileSize - tileMargin, y * tileSize);
-                            case RIGHT:
-                                return new Mark((x + 1) * tileSize, y * tileSize + tileMargin, (x + 1) * tileSize, (y + 1) * tileSize - tileMargin);
-                            default:
-                                return null;
-                        }
-                    }).collect(Collectors.toList());
+        if (current.x == x && current.y == y && current.waypointIndex == nextWaypointIndex) {
+            return current;
         }
 
-        return path;
+        throw new IllegalStateException("Cannot find a tile: (" + x + ";" + y + ";#" + nextWaypointIndex + ")");
     }
 
     private synchronized void fetch(World world) {
@@ -145,8 +155,6 @@ public class Navigator {
         int startX = waypoints[0][0];
         int startY = waypoints[0][1];
         boolean incomplete = false;
-
-//        route.add(new Tile(startX, startY, 1));
 
         for (int j = 0; j <= waypoints.length; j++) {
             int[] waypoint = waypoints[j % waypoints.length];
@@ -233,77 +241,82 @@ public class Navigator {
         return new Optional[width][height];
     }
 
-//    private static Mark mark(Direction in, Direction out, int x, int y, int position) {
-//        switch (e) {
-//            case DOWN:
-//                return new Mark(x * tileSize + tileMargin, (y + 1) * tileSize, (x + 1) * tileSize - tileMargin, (y + 1) * tileSize);
-//            case LEFT:
-//                return new Mark(x * tileSize, y * tileSize + tileMargin, x * tileSize, (y + 1) * tileSize - tileMargin);
-//            case UP:
-//                return new Mark(x * tileSize + tileMargin, y * tileSize, (x + 1) * tileSize - tileMargin, y * tileSize);
-//            case RIGHT:
-//                return new Mark((x + 1) * tileSize, y * tileSize + tileMargin, (x + 1) * tileSize, (y + 1) * tileSize - tileMargin);
-//            default:
-//                return null;
-//        }
-//    }
+    private Collection<Marker> linear(Direction out, int x, int y, int markers) {
+        List<Marker> markerList = new ArrayList<>(markers + 2);
+        int dx = DirectionUtil.dx(out);
+        int dy = DirectionUtil.dy(out);
 
-    private Collection<Mark> linear(Direction direction, int x, int y, int markers) {
-        List<Mark> markList = new ArrayList<>(markers + 2);
-        int dx = DirectionUtil.dx(direction); // -1: Left, 1: Right
-        int dy = DirectionUtil.dy(direction); // -1: Up, 1: Down
+//        LOG.printf("%n (%d;%d;%s)%n", x, y, out);
 
-        double norm = dx == -1 || dy == -1 ? tileSize : 0;
+        double aX = tileMargin;
+        double bX = tileSize - tileMargin;
         double delta = tileSize / (markers + 1);
-
-        LOG.printf("%n (%d;%d;%s)%n", x, y, direction);
-
-        double baseX = x * tileSize + norm;
-        double baseY = y * tileSize + norm;
-        double deltaX = dx * delta;
-        double deltaY = dy * delta;
+        double baseX = (x + x + 1 - dy - dx) * tileSize / 2;
+        double baseY = (y + y + 1 + dx - dy) * tileSize / 2;
 
         for (int i = 0; i <= markers; i++) {
-            double aX = baseX + dy * tileMargin + deltaX * i;
-            double aY = baseY + dx * tileMargin + deltaY * i;
-            double bX = baseX + dy * (tileSize - tileMargin) + deltaX * i;
-            double bY = baseY + dx * (tileSize - tileMargin) + deltaY * i;
+            double abY = delta * i;
 
-            markList.add(new Mark(aX, aY, bX, bY));
-            LOG.printf("#%d: (%.3f;%.3f)->(%.3f;%.3f)%n", i, aX, aY, bX, bY);
+            Marker marker = rotate(baseX, baseY, aX, abY, bX, abY, dy, dx);
+
+            markerList.add(marker);
+
+//            LOG.printf("#%d: (%.3f;%.3f)->(%.3f;%.3f)%n", i, mark.leftX, mark.leftY, mark.rightX, mark.rightY);
         }
 
-        return markList;
+        markerList.add(rotate(baseX, baseY, aX, tileSize, bX, tileSize, dy, dx));
+
+        return markerList;
     }
 
-    private Collection<Mark> circular(Direction in, Direction out, int x, int y, int markers) {
-        List<Mark> markList = new ArrayList<>(markers + 2);
+    private Collection<Marker> circular(Direction in, Direction out, int x, int y, int markers) {
+        List<Marker> markerList = new ArrayList<>(markers + 2);
 
-        int inDx = DirectionUtil.dx(in); // -1: Left, 1: Right
-        int inDy = DirectionUtil.dy(in); // -1: Up, 1: Down
-        int outDx = DirectionUtil.dx(out); // -1: Left, 1: Right
-        int outDy = DirectionUtil.dy(out); // -1: Up, 1: Down
+        int dx = -DirectionUtil.dx(out);
+        int dy = -DirectionUtil.dy(out);
 
-        double inNorm = inDx == -1 || inDy == -1 ? tileSize : 0;
-        double outNorm = inDx == -1 || inDy == -1 ? tileSize : 0;
-        double angle = PI / 2 / (markers + 1);
+//        LOG.printf("%n (%d;%d;%s)%n", x, y, out);
 
-        LOG.printf("%n (%d;%d;%s)%n", x, y, direction);
+        double inner = tileMargin;
+        double outer = tileSize - tileMargin;
+        double delta = PI / 2 / (markers + 1);
+        double baseX = (x + x + 1 - dy - dx) * tileSize / 2;
+        double baseY = (y + y + 1 + dx - dy) * tileSize / 2;
 
-        double baseX = x * tileSize + inNorm;
-        double baseY = y * tileSize + inNorm;
+//        LOG.printf("%n (%d;%d;%s->%s)%n", x, y, in, out);
 
         for (int i = 0; i <= markers; i++) {
-            double aX = baseX + dy  + deltaX * i;
-            double aY = baseY + dx  + deltaY * i;
-            double bX = baseX + dy * tileSize + deltaX * i;
-            double bY = baseY + dx * tileSize + deltaY * i;
+            double cos = cos(delta * i);
+            double sin = sin(delta * i);
 
-            markList.add(new Mark(aX, aY, bX, bY));
-            LOG.printf("#%d: (%.3f;%.3f)->(%.3f;%.3f)%n", i, aX, aY, bX, bY);
+            double aX = outer * cos;
+            double aY = outer * sin;
+            double bX = inner * cos;
+            double bY = inner * sin;
+
+            Marker marker = rotate(baseX, baseY, aX, aY, bX, bY, dy, dx);
+
+            markerList.add(marker);
+
+//            LOG.printf("#%d: (%.3f;%.3f)->(%.3f;%.3f)%n", i, mark.leftX, mark.leftY, mark.rightX, mark.rightY);
         }
 
-        return markList;
+        markerList.add(rotate(baseX, baseY, 0, outer, 0, inner, dy, dx));
+
+        if (DirectionUtil.relative(in, out) == Direction.RIGHT) {
+            Collections.reverse(markerList);
+        }
+
+        return markerList;
+    }
+
+    private static Marker rotate(double baseX, double baseY, double aX, double aY, double bX, double bY, int cos, int sin) {
+        return new Marker(
+                baseX + aX * cos + aY * sin,
+                baseY - aX * sin + aY * cos,
+                baseX + bX * cos + bY * sin,
+                baseY - bX * sin + bY * cos
+        );
     }
 
     private static final class Point {
@@ -337,30 +350,4 @@ public class Navigator {
         }
     }
 
-    public static final class Path {
-        private final double padding;
-        private final Collection<Mark> marks = new ArrayList<>();
-
-        public Path(double padding) {
-            this.padding = padding;
-        }
-
-        public Collection<Mark> getMarks() {
-            return Collections.unmodifiableCollection(marks);
-        }
-    }
-
-    public static final class Mark {
-        public final double leftX;
-        public final double leftY;
-        public final double rightX;
-        public final double rightY;
-
-        private Mark(double leftX, double leftY, double rightX, double rightY) {
-            this.leftX = leftX;
-            this.leftY = leftY;
-            this.rightX = rightX;
-            this.rightY = rightY;
-        }
-    }
 }
