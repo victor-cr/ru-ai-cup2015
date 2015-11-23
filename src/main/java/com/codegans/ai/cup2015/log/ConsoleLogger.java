@@ -7,6 +7,10 @@ import model.Car;
 import model.TileType;
 import model.World;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+
 /**
  * JavaDoc here
  *
@@ -14,14 +18,17 @@ import model.World;
  * @since 19.11.2015 19:56
  */
 public class ConsoleLogger implements Logger {
+    private volatile PrintStream out = System.out;
+    private final PrintStream nullOut = new PrintStream(NullOutputStream.INSTANCE);
+
     @Override
     public void print(Object message) {
-        System.out.print(message);
+        out.print(message);
     }
 
     @Override
     public void printf(String pattern, Object... params) {
-        System.out.printf(pattern, params);
+        out.printf(pattern, params);
     }
 
     @Override
@@ -30,11 +37,11 @@ public class ConsoleLogger implements Logger {
     }
 
     @Override
-    public void waypoint(Car car) {
-        TileInfo info = Navigator.getInstance(null, null).getCurrentTile(car);
+    public void car(Car car, Navigator navigator) {
+        TileInfo info = navigator.getCurrentTile(car);
         double speed = StrictMath.hypot(car.getSpeedX(), car.getSpeedY());
 
-        printf("Car with %.1f%% at: [%d,%d] (%5.3f;%5.3f). Speed: %.3f/%.3f. Engine: %.3f. Waypoint #%d: (%d;%d)%n", car.getDurability() * 100, info.x, info.y, car.getX(), car.getY(), speed, car.getAngularSpeed(), car.getEnginePower(), car.getNextWaypointIndex(), car.getNextWaypointX(), car.getNextWaypointY());
+        printf("Car with %.1f%% at: [%d,%d] (%5.3f;%5.3f). Angle: %.3f. Speed: %.3f/%.3f. Wheels: %.3f. Engine: %.3f. Waypoint #%d: (%d;%d)%n", car.getDurability() * 100, info.x, info.y, car.getX(), car.getY(), car.getAngle(), speed, car.getAngularSpeed(), car.getWheelTurn(), car.getEnginePower(), car.getNextWaypointIndex(), car.getNextWaypointX(), car.getNextWaypointY());
     }
 
     @Override
@@ -53,6 +60,22 @@ public class ConsoleLogger implements Logger {
             }
 
             print('\n');
+        }
+    }
+
+    @Override
+    public void stop(Car car) {
+        print("Race is over: " + car.getId() + "\n");
+        out = nullOut;
+    }
+
+    private static class NullOutputStream extends OutputStream {
+        private static final NullOutputStream INSTANCE = new NullOutputStream();
+
+        private NullOutputStream() {
+        }
+
+        public void write(int b) throws IOException {
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.codegans.ai.cup2015.log;
 
+import com.codegans.ai.cup2015.Navigator;
 import com.codegans.ai.cup2015.action.Action;
 import model.Car;
 import model.World;
@@ -24,7 +25,7 @@ public class NullLogger implements Logger {
     }
 
     @Override
-    public void waypoint(Car car) {
+    public void car(Car car, Navigator navigator) {
     }
 
     @Override
@@ -33,5 +34,9 @@ public class NullLogger implements Logger {
 
     @Override
     public void layout(World world) {
+    }
+
+    @Override
+    public void stop(Car car) {
     }
 }

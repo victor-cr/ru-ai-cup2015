@@ -1,5 +1,6 @@
 package com.codegans.ai.cup2015.log;
 
+import com.codegans.ai.cup2015.Navigator;
 import com.codegans.ai.cup2015.action.Action;
 import model.Car;
 import model.World;
@@ -17,9 +18,11 @@ public interface Logger {
 
     void action(Action<?> action);
 
-    void waypoint(Car car);
+    void car(Car car, Navigator navigator);
 
     void turn(World world);
 
     void layout(World world);
+
+    void stop(Car car);
 }

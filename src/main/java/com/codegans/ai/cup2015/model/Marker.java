@@ -8,25 +8,22 @@ import java.util.Formatter;
  * @author Victor Polischuk
  * @since 21.11.2015 20:12
  */
-public final class Marker {
-    public final double leftX;
-    public final double leftY;
-    public final double rightX;
-    public final double rightY;
+public final class Marker extends Line {
+    public final int x;
+    public final int y;
 
-    public Marker(double leftX, double leftY, double rightX, double rightY) {
-        this.leftX = leftX;
-        this.leftY = leftY;
-        this.rightX = rightX;
-        this.rightY = rightY;
+    public Marker(int x, int y, double leftX, double leftY, double rightX, double rightY) {
+        super(new Point(leftX, leftY), new Point(rightX, rightY));
+        this.x = x;
+        this.y = y;
     }
 
     public double pointX() {
-        return leftX + (rightX - leftX) / 2;
+        return pointX(0);
     }
 
     public double pointY() {
-        return leftY + (rightY - leftY) / 2;
+        return pointY(0);
     }
 
     @Override

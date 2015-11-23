@@ -7,6 +7,8 @@ package com.codegans.ai.cup2015;
  * @since 21.11.2015 22:19
  */
 public interface Priority {
-    int NORMAL = 256;
-    int HIGH = NORMAL >> 1;
+    int TOP = 1;
+    int HIGH = TOP << 6;
+    int NORMAL = HIGH << 2;
+    int LOW = HIGH << 1;
 }

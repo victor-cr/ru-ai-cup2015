@@ -5,6 +5,7 @@ import com.codegans.ai.cup2015.Priority;
 import com.codegans.ai.cup2015.action.Action;
 import com.codegans.ai.cup2015.action.MoveAction;
 import com.codegans.ai.cup2015.model.Marker;
+import com.codegans.ai.cup2015.model.Point;
 import model.Car;
 import model.Game;
 import model.Move;
@@ -26,9 +27,8 @@ public class MoveDecision implements Decision {
     public Collection<Action<?>> decide(Car self, World world, Game game, Move move, Navigator navigator) {
         Collection<Marker> path = navigator.getPath(self, self.getNextWaypointIndex(), WINDOW);
 
-        double x = path.stream().mapToDouble(Marker::pointX).average().orElse(0);
-        double y = path.stream().mapToDouble(Marker::pointY).average().orElse(0);
+        Point target = path.stream().map(e -> e.left.shiftTo(e.right, 0)).reduce(new Point(self.getX(), self.getY()), (a, b) -> a.shiftTo(b, 0));
 
-        return Collections.singleton(new MoveAction(Priority.NORMAL, self, x, y));
+        return Collections.singleton(new MoveAction(Priority.NORMAL, self, target.x, target.y));
     }
 }

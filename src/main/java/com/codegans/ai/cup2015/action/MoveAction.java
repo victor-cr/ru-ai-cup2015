@@ -1,5 +1,6 @@
 package com.codegans.ai.cup2015.action;
 
+import com.codegans.ai.cup2015.model.Point;
 import model.Move;
 import model.Unit;
 
@@ -15,11 +16,24 @@ import static java.lang.StrictMath.PI;
  */
 public class MoveAction extends BaseAction<MoveAction> {
     private final double angle;
+    private final Point point;
+
+    public MoveAction(int score, double angle) {
+        super(score);
+
+        this.angle = angle;
+        this.point = null;
+    }
 
     public MoveAction(int score, Unit unit, double x, double y) {
         super(score);
 
-        this.angle = unit.getAngleTo(x, y) * 32 / PI;
+        this.angle = unit.getAngleTo(x, y) * 4 / PI;
+        this.point = new Point(x, y);
+    }
+
+    public Point getPoint() {
+        return point;
     }
 
     @Override

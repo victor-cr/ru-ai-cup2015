@@ -2,6 +2,7 @@ package com.codegans.ai.cup2015;
 
 import com.codegans.ai.cup2015.log.Logger;
 import com.codegans.ai.cup2015.log.LoggerFactory;
+import com.codegans.ai.cup2015.model.Line;
 import com.codegans.ai.cup2015.model.Marker;
 import com.codegans.ai.cup2015.model.TileInfo;
 import model.Car;
@@ -15,13 +16,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.lang.StrictMath.PI;
 import static java.lang.StrictMath.cos;
@@ -36,13 +38,18 @@ import static java.lang.StrictMath.sin;
 public class Navigator {
     private static final Navigator INSTANCE = new Navigator();
     private static final Logger LOG = LoggerFactory.getLogger();
+    private static final int TILE_MARKER_SIZE = 10;
 
+    private volatile CollisionDetector collisionDetector;
     private volatile Tile startTile;
     private volatile int width;
     private volatile int height;
     private volatile double tileSize;
     private volatile double tileMargin;
     private volatile boolean completed = false;
+
+    private Navigator() {
+    }
 
     public static Navigator getInstance(Game game, World world) {
         if (!INSTANCE.completed) {
@@ -54,21 +61,40 @@ public class Navigator {
             INSTANCE.fetch(world);
         }
 
+        INSTANCE.collisionDetector = new CollisionDetector(world, game, INSTANCE);
+
         return INSTANCE;
     }
 
-    public int positionX(Unit unit) {
-        return (int) (unit.getX() / tileSize);
+    public CollisionDetector getCollisionDetector() {
+        return collisionDetector;
     }
 
-    public int positionY(Unit unit) {
-        return (int) (unit.getY() / tileSize);
+    public Collection<TileInfo> getTileOptions(int x, int y) {
+        Tile current = startTile;
+        Collection<TileInfo> tiles = new ArrayList<>();
+
+        while (current != startTile.prev) {
+            if (current.x == x && current.y == y) {
+                tiles.add(current.create());
+            }
+
+            current = current.next;
+        }
+
+        return tiles;
     }
 
     public TileInfo getCurrentTile(Car car) {
         Tile current = findTile(car.getX(), car.getY(), car.getNextWaypointIndex());
 
-        return new TileInfo(0, current.x, current.y, current.in, current.out);
+        return current.create(0);
+    }
+
+    public TileInfo getNextTile(int x, int y, int nextWaypoint) {
+        Tile next = findTile(x, y, nextWaypoint).next;
+
+        return next.create();
     }
 
     public TileInfo getNextTurnTile(Car car) {
@@ -80,7 +106,11 @@ public class Navigator {
             current = current.next;
         } while (current.prev.out == current.out);
 
-        return new TileInfo(i, current.x, current.y, current.in, current.out);
+        return current.create(i);
+    }
+
+    public Collection<Marker> getPath(Car car, int size) {
+        return getPath(car, car.getNextWaypointIndex(), size);
     }
 
     public Collection<Marker> getPath(Unit unit, int nextWaypointIndex, int size) {
@@ -90,30 +120,33 @@ public class Navigator {
         Tile current = findTile(x, y, nextWaypointIndex);
 
         if (current != null) {
-            int parts = 10;
-            Collection<Marker> path = new ArrayList<>(size * parts);
+            Collection<Tile> path = new ArrayList<>(size);
 
             for (int i = 0; i < size; i++) {
-                if (current.in == DirectionUtil.opposite(current.out)) {
-                    path.addAll(linear(current.out, current.x, current.y, parts));
-                } else {
-                    path.addAll(circular(current.in, current.out, current.x, current.y, parts));
+                if (current.tileMarkers.isEmpty()) {
+                    if (current.in == MathUtil.opposite(current.out)) {
+                        current.tileMarkers.addAll(linear(current.out, current.x, current.y));
+                    } else {
+                        current.tileMarkers.addAll(circular(current.in, current.out, current.x, current.y));
+                    }
                 }
+
+                path.add(current);
 
                 current = current.next;
             }
 
-            for (Iterator<Marker> i = path.iterator(); i.hasNext(); ) {
-                Marker e = i.next();
+            Stream<Marker> head = path.stream()
+                    .limit(1)
+                    .flatMap(e -> e.tileMarkers.stream())
+                    .filter(e -> MathUtil.relative(e, x, y) != Direction.LEFT);
 
-                if ((e.rightX - e.leftX) * (y - e.leftY) - (e.rightY - e.leftY) * (x - e.leftX) > 0) {
-                    i.remove();
-                } else {
-                    break;
-                }
-            }
+            Stream<Marker> tail = path.stream()
+                    .limit(size)
+                    .skip(1)
+                    .flatMap(e -> e.tileMarkers.stream());
 
-            return path;
+            return Stream.concat(head, tail).collect(Collectors.toList());
         }
 
         return Collections.emptySet();
@@ -127,17 +160,25 @@ public class Navigator {
     }
 
     private Tile findTile(int x, int y, int nextWaypointIndex) {
-        Tile current = startTile;
+        int radius = 0;
 
-        while (current != startTile.prev && (current.x != x || current.y != y || current.waypointIndex != nextWaypointIndex)) {
-            current = current.next;
-        }
+        do {
+            Tile current = startTile;
 
-        if (current.x == x && current.y == y && current.waypointIndex == nextWaypointIndex) {
-            return current;
-        }
+             do {
+                if (current.waypointIndex == nextWaypointIndex
+                        && (current.x == x - radius && current.y == y
+                        || current.x == x + radius && current.y == y
+                        || current.x == x && current.y == y - radius
+                        || current.x == x && current.y == y + radius)) {
+                    return current;
+                }
 
-        throw new IllegalStateException("Cannot find a tile: (" + x + ";" + y + ";#" + nextWaypointIndex + ")");
+                current = current.next;
+            } while (current != startTile);
+        } while (radius++ < 4);
+
+        throw new IllegalStateException("Cannot find a tile in (" + x + ";" + y + ";#" + nextWaypointIndex + ")");
     }
 
     private synchronized void fetch(World world) {
@@ -164,7 +205,7 @@ public class Navigator {
             Queue<Point> queue = new LinkedList<>();
             Optional<Direction>[][] progress = createDirectionArray(width, height);
 
-            LOG.printf("(%d;%d)->(%d;%d)%n", startX, startY, finishX, finishY);
+            LOG.printf("Calculate path: (%d;%d)->(%d;%d)%n", startX, startY, finishX, finishY);
 
             progress[startX][startY] = Optional.empty();
             queue.offer(new Point(startX, startY));
@@ -176,12 +217,12 @@ public class Navigator {
                     break;
                 }
 
-                Set<Direction> directions = DirectionUtil.fromTileType(field[point.x][point.y]);
+                Set<Direction> directions = MathUtil.fromTileType(field[point.x][point.y]);
 
                 if (directions != null) {
                     for (Direction direction : directions) {
-                        int x = point.x + DirectionUtil.dx(direction);
-                        int y = point.y + DirectionUtil.dy(direction);
+                        int x = point.x + MathUtil.dx(direction);
+                        int y = point.y + MathUtil.dy(direction);
 
                         if (progress[x][y] == null) {
                             progress[x][y] = Optional.of(direction);
@@ -198,10 +239,10 @@ public class Navigator {
             int k = 1;
 
             for (Optional<Direction> direction = progress[x][y]; direction != null && direction.isPresent(); direction = progress[x][y]) {
-                route.add(i, new Tile(x, y, (j + k) % waypoints.length));
+                route.add(i, new Tile(x, y, (j + k) % waypoints.length, MathUtil.fromTileType(field[x][y])));
 
-                x -= DirectionUtil.dx(direction.get());
-                y -= DirectionUtil.dy(direction.get());
+                x -= MathUtil.dx(direction.get());
+                y -= MathUtil.dy(direction.get());
                 k = 0;
             }
 
@@ -221,19 +262,34 @@ public class Navigator {
         LOG.printf("Raw path: %s%n", route);
 
         for (Tile tile : route) {
-            prev.out = DirectionUtil.shift(tile.x - prev.x, tile.y - prev.y);
-            tile.in = DirectionUtil.opposite(prev.out);
+            prev.out = MathUtil.shift(tile.x - prev.x, tile.y - prev.y);
+            tile.in = MathUtil.opposite(prev.out);
             tile.prev = prev;
             prev = prev.next = tile;
         }
+
+        double halfSize = INSTANCE.tileSize / 2;
+        double margin = INSTANCE.tileMargin;
+
+        route.forEach(t -> Arrays.stream(Direction.values()).filter(e -> e != t.in && e != t.out).map(e -> {
+            int dx = MathUtil.dx(e);
+            int dy = MathUtil.dy(e);
+
+            return new Line(
+                    (t.x + t.x + 1 + dx + dy) * halfSize - dx * margin,
+                    (t.y + t.y + 1 + dy + dx) * halfSize - dy * margin,
+                    (t.x + t.x + 1 + dx - dy) * halfSize - dx * margin,
+                    (t.y + t.y + 1 + dy - dx) * halfSize - dy * margin
+            );
+        }).forEach(t.tileWalls::add));
 
         startTile = prev;
 
         if (!incomplete) {
             completed = true;
-        }
 
-        LOG.printf("Calculated path: %s%n", route);
+            LOG.printf("Calculated path: %s%n", route);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -241,78 +297,47 @@ public class Navigator {
         return new Optional[width][height];
     }
 
-    private Collection<Marker> linear(Direction out, int x, int y, int markers) {
-        List<Marker> markerList = new ArrayList<>(markers + 2);
-        int dx = DirectionUtil.dx(out);
-        int dy = DirectionUtil.dy(out);
+    private Collection<Marker> linear(Direction out, int x, int y) {
+        int dx = MathUtil.dx(out);
+        int dy = MathUtil.dy(out);
 
-//        LOG.printf("%n (%d;%d;%s)%n", x, y, out);
+        double leftX = tileSize - tileMargin;
+        double rightX = tileMargin;
+        double delta = tileSize / (TILE_MARKER_SIZE + 1);
+        double baseX = (x + x + 1 - dx - dy) * tileSize / 2;
+        double baseY = (y + y + 1 - dy + dx) * tileSize / 2;
 
-        double aX = tileMargin;
-        double bX = tileSize - tileMargin;
-        double delta = tileSize / (markers + 1);
-        double baseX = (x + x + 1 - dy - dx) * tileSize / 2;
-        double baseY = (y + y + 1 + dx - dy) * tileSize / 2;
-
-        for (int i = 0; i <= markers; i++) {
-            double abY = delta * i;
-
-            Marker marker = rotate(baseX, baseY, aX, abY, bX, abY, dy, dx);
-
-            markerList.add(marker);
-
-//            LOG.printf("#%d: (%.3f;%.3f)->(%.3f;%.3f)%n", i, mark.leftX, mark.leftY, mark.rightX, mark.rightY);
-        }
-
-        markerList.add(rotate(baseX, baseY, aX, tileSize, bX, tileSize, dy, dx));
-
-        return markerList;
+        return IntStream.range(0, TILE_MARKER_SIZE + 2)
+                .mapToDouble(i -> delta * i)
+                .mapToObj(i -> rotate(x, y, baseX, baseY, leftX, i, rightX, i, dy, dx))
+                .collect(Collectors.toList());
     }
 
-    private Collection<Marker> circular(Direction in, Direction out, int x, int y, int markers) {
-        List<Marker> markerList = new ArrayList<>(markers + 2);
+    private Collection<Marker> circular(Direction in, Direction out, int x, int y) {
+        int dx = MathUtil.dx(out);
+        int dy = MathUtil.dy(out);
+        int reverse = MathUtil.relative(in, out) == Direction.RIGHT ? -1 : 1;
 
-        int dx = -DirectionUtil.dx(out);
-        int dy = -DirectionUtil.dy(out);
+        double left = (1 + reverse) * tileSize / 2 - reverse * tileMargin;
+        double right = (1 - reverse) * tileSize / 2 + reverse * tileMargin;
+        double delta = PI / 2 / (TILE_MARKER_SIZE + 1) * reverse;
+        double baseX = (x + x + 1 + dx - reverse * dy) * tileSize / 2;
+        double baseY = (y + y + 1 + dy + reverse * dx) * tileSize / 2;
 
-//        LOG.printf("%n (%d;%d;%s)%n", x, y, out);
+        return IntStream.range(0, TILE_MARKER_SIZE + 2)
+                .mapToDouble(i -> delta * i)
+                .mapToObj(i -> {
+                    double cos = cos(i);
+                    double sin = sin(i);
 
-        double inner = tileMargin;
-        double outer = tileSize - tileMargin;
-        double delta = PI / 2 / (markers + 1);
-        double baseX = (x + x + 1 - dy - dx) * tileSize / 2;
-        double baseY = (y + y + 1 + dx - dy) * tileSize / 2;
-
-//        LOG.printf("%n (%d;%d;%s->%s)%n", x, y, in, out);
-
-        for (int i = 0; i <= markers; i++) {
-            double cos = cos(delta * i);
-            double sin = sin(delta * i);
-
-            double aX = outer * cos;
-            double aY = outer * sin;
-            double bX = inner * cos;
-            double bY = inner * sin;
-
-            Marker marker = rotate(baseX, baseY, aX, aY, bX, bY, dy, dx);
-
-            markerList.add(marker);
-
-//            LOG.printf("#%d: (%.3f;%.3f)->(%.3f;%.3f)%n", i, mark.leftX, mark.leftY, mark.rightX, mark.rightY);
-        }
-
-        markerList.add(rotate(baseX, baseY, 0, outer, 0, inner, dy, dx));
-
-        if (DirectionUtil.relative(in, out) == Direction.RIGHT) {
-            Collections.reverse(markerList);
-        }
-
-        return markerList;
+                    return rotate(x, y, baseX, baseY, left * cos, left * sin, right * cos, right * sin, -dx, dy);
+                })
+                .collect(Collectors.toList());
     }
 
-    private static Marker rotate(double baseX, double baseY, double aX, double aY, double bX, double bY, int cos, int sin) {
+    private static Marker rotate(int x, int y, double baseX, double baseY, double aX, double aY, double bX, double bY, int cos, int sin) {
         return new Marker(
-                baseX + aX * cos + aY * sin,
+                x, y, baseX + aX * cos + aY * sin,
                 baseY - aX * sin + aY * cos,
                 baseX + bX * cos + bY * sin,
                 baseY - bX * sin + bY * cos
@@ -333,15 +358,40 @@ public class Navigator {
         private final int x;
         private final int y;
         private final int waypointIndex;
+        private final Collection<Marker> tileMarkers = new ArrayList<>(TILE_MARKER_SIZE + 1);
+        private final Collection<Line> tileWalls = new ArrayList<>();
         private Tile prev;
         private Tile next;
         private Direction in;
         private Direction out;
 
-        public Tile(int x, int y, int waypointIndex) {
+        public Tile(int x, int y, int waypointIndex, Collection<Direction> directions) {
             this.x = x;
             this.y = y;
             this.waypointIndex = waypointIndex;
+
+//            double halfSize = INSTANCE.tileSize / 2;
+//            double margin = INSTANCE.tileMargin;
+
+//            tileWalls = Arrays.stream(Direction.values()).filter(e -> !directions.contains(e)).map(e -> {
+//                int dx = MathUtil.dx(e);
+//                int dy = MathUtil.dy(e);
+//
+//                return new Line(
+//                        (x + x + 1 + dx + dy) * halfSize - dx * margin,
+//                        (y + y + 1 + dy + dx) * halfSize - dy * margin,
+//                        (x + x + 1 + dx - dy) * halfSize - dx * margin,
+//                        (y + y + 1 + dy - dx) * halfSize - dy * margin
+//                );
+//            }).collect(Collectors.toList());
+        }
+
+        public TileInfo create() {
+            return create(waypointIndex);
+        }
+
+        public TileInfo create(int i) {
+            return new TileInfo(i, x, y, in, out, new ArrayList<>(tileWalls));
         }
 
         @Override
