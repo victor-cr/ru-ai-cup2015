@@ -1,4 +1,4 @@
-import com.codegans.StrategyDelegate;
+import com.codegans.ai.cup2015.StrategyDelegate;
 import model.Car;
 import model.Game;
 import model.Move;

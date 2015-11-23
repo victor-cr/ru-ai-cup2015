@@ -1,4 +1,4 @@
-package com.codegans;
+package com.codegans.ai.cup2015;
 
 import com.codegans.ai.cup2015.Navigator;
 import com.codegans.ai.cup2015.action.Action;
