@@ -29,6 +29,10 @@ public class NullLogger implements Logger {
     }
 
     @Override
+    public void others(World world) {
+    }
+
+    @Override
     public void turn(World world) {
     }
 

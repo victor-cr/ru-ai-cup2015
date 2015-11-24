@@ -391,7 +391,7 @@ public class Navigator {
         }
 
         public TileInfo create(int i) {
-            return new TileInfo(i, x, y, in, out, new ArrayList<>(tileWalls));
+            return new TileInfo(i, x, y, in, out, new ArrayList<>(tileWalls), new ArrayList<>(tileMarkers));
         }
 
         @Override

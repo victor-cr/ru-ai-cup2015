@@ -13,11 +13,23 @@ import static java.lang.StrictMath.PI;
  */
 public class RectangleTest {
     @Test
-    public void testHasCollision_Point() {
+    public void testHasCollision_InsidePoint() {
         Rectangle self = new Rectangle(new Point(0, 0), 10, 10, -PI / 2);
         Rectangle obstacle = new Rectangle(new Point(0, 0), 2, 2, 0);
 
+        print(self, obstacle);
+
         Assert.assertTrue(self.hasCollision(obstacle));
+    }
+
+    @Test
+    public void testHasCollision_OutsidePoint() {
+        Rectangle self = new Rectangle(new Point(0, 0), 10, 10, -PI / 2);
+        Rectangle obstacle = new Rectangle(new Point(20, 20), 2, 2, 0);
+
+        print(self, obstacle);
+
+        Assert.assertFalse(self.hasCollision(obstacle));
     }
 
     @Test
@@ -25,17 +37,23 @@ public class RectangleTest {
         Rectangle self = new Rectangle(new Point(50, 50), 30, 45, -PI / 2);
         Rectangle obstacle = new Rectangle(new Point(0, 0), 100, 15, 0);
 
+        print(self, obstacle);
+
         Assert.assertFalse(self.hasCollision(obstacle));
     }
 
     @Test
     public void testHasCollision_OrthoBlocks_Collision() {
         Rectangle self = new Rectangle(new Point(40, 25), 35, 45, -PI / 2);
-        Rectangle obstacle = new Rectangle(new Point(0, 0), 100, 15, 0);
+        Rectangle obstacle = new Rectangle(new Point(0, 0), 100, 105, 0);
 
-        System.out.println("Self: " + self);
-        System.out.println("Obstacle: " + obstacle);
+        print(self, obstacle);
 
         Assert.assertTrue(self.hasCollision(obstacle));
+    }
+
+    private static void print(Rectangle self, Rectangle other) {
+        System.out.println(self);
+        System.out.println(other);
     }
 }

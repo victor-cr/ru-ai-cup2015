@@ -20,6 +20,8 @@ public interface Logger {
 
     void car(Car car, Navigator navigator);
 
+    void others(World world);
+
     void turn(World world);
 
     void layout(World world);

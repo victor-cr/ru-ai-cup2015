@@ -10,6 +10,9 @@ import model.World;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * JavaDoc here
@@ -28,6 +31,30 @@ public class ConsoleLogger implements Logger {
 
     @Override
     public void printf(String pattern, Object... params) {
+        for (int i = 0; i < params.length; i++) {
+            if (params[i] instanceof Collection) {
+                Collection<?> c = (Collection) params[i];
+
+                if (!c.isEmpty()) {
+                    c = c.stream()
+                            .filter(e -> e instanceof Car)
+                            .map(e -> (Car) e)
+                            .map(e -> String.format("Car@(%.3f;%.3f)", e.getX(), e.getY()))
+                            .collect(Collectors.toList());
+                }
+
+                if (!c.isEmpty()) {
+                    params[i] = c;
+                }
+            }
+
+            if (params[i] instanceof Car) {
+                Car e = (Car) params[i];
+
+                params[i] = String.format("Car@(%.3f;%.3f)", e.getX(), e.getY());
+            }
+        }
+
         out.printf(pattern, params);
     }
 
@@ -43,6 +70,11 @@ public class ConsoleLogger implements Logger {
 
         printf("Car with %.1f%% at: [%d,%d] (%.3f;%.3f) %.1fx%.1f. Angle: %.3f. Speed: %.3f/%.3f. Wheels: %.3f. Engine: %.3f. Waypoint #%d: (%d;%d)%n",
                 car.getDurability() * 100, info.x, info.y, car.getX(), car.getY(), car.getWidth(), car.getHeight(), car.getAngle(), speed, car.getAngularSpeed(), car.getWheelTurn(), car.getEnginePower(), car.getNextWaypointIndex(), car.getNextWaypointX(), car.getNextWaypointY());
+    }
+
+    @Override
+    public void others(World world) {
+        printf("All cars: %s%n", Arrays.asList(world.getCars()));
     }
 
     @Override

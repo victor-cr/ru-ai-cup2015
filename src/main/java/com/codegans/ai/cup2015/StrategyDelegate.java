@@ -8,6 +8,7 @@ import com.codegans.ai.cup2015.decision.ShootDecision;
 import com.codegans.ai.cup2015.decision.SpeedDecision;
 import com.codegans.ai.cup2015.decision.TurnDecision;
 import com.codegans.ai.cup2015.decision.UnstuckDecision;
+import com.codegans.ai.cup2015.intrinsic.TooManyIdiotsDecision;
 import com.codegans.ai.cup2015.log.Logger;
 import com.codegans.ai.cup2015.log.LoggerFactory;
 import model.Car;
@@ -34,7 +35,10 @@ public class StrategyDelegate {
             new TurnDecision(),
             new UnstuckDecision(),
             new NitroDecision(),
-            new ShootDecision()
+            new ShootDecision(),
+
+
+            new TooManyIdiotsDecision()
     );
 
     public Collection<Action<?>> debugActions(Car self, World world, Game game, Move move) {
@@ -42,6 +46,7 @@ public class StrategyDelegate {
 
         log.turn(world);
         log.car(self, navigator);
+        log.others(world);
 
         return decisions.stream()
                 .map(e -> e.decide(self, world, game, move, navigator))

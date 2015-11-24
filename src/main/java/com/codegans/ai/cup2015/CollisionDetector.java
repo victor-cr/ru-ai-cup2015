@@ -1,5 +1,7 @@
 package com.codegans.ai.cup2015;
 
+import com.codegans.ai.cup2015.log.Logger;
+import com.codegans.ai.cup2015.log.LoggerFactory;
 import com.codegans.ai.cup2015.model.Line;
 import com.codegans.ai.cup2015.model.Rectangle;
 import model.Car;
@@ -19,6 +21,7 @@ import java.util.stream.Stream;
  */
 public class CollisionDetector {
     private static final double RADIUS = 20.0D;
+    private final Logger log = LoggerFactory.getLogger();
     private final World world;
     private final Game game;
     private final Navigator navigator;
@@ -36,15 +39,37 @@ public class CollisionDetector {
     }
 
     public boolean hasFrontalCollision(Car car) {
-        Rectangle zone = new Rectangle(car, RADIUS).topHalf();
+        Rectangle zone = new Rectangle(car).addWidth(RADIUS).topHalf();
 
-        return getNeighbourCars(car, zone).anyMatch(e -> true) || getNeighbourWalls(car, zone).anyMatch(e -> true);
+        boolean cars = getNeighbourCars(car, zone).anyMatch(e -> true);
+        boolean walls = getNeighbourWalls(car, zone).anyMatch(e -> true);
+
+        if (cars) {
+            log.printf("Car collision: %s%n", getNeighbourCars(car));
+        }
+
+        if (walls) {
+            log.printf("Wall collision: %s%n", getNeighbourWalls(car));
+        }
+
+        return cars || walls;
     }
 
     public boolean hasBackwardCollision(Car car) {
-        Rectangle zone = new Rectangle(car, RADIUS).lowHalf();
+        Rectangle zone = new Rectangle(car).addWidth(RADIUS).lowHalf();
 
-        return getNeighbourCars(car, zone).anyMatch(e -> true) || getNeighbourWalls(car, zone).anyMatch(e -> true);
+        boolean cars = getNeighbourCars(car, zone).anyMatch(e -> true);
+        boolean walls = getNeighbourWalls(car, zone).anyMatch(e -> true);
+
+        if (cars) {
+            log.printf("Car collision: %s%n", getNeighbourCars(car));
+        }
+
+        if (walls) {
+            log.printf("Wall collision: %s%n", getNeighbourWalls(car));
+        }
+
+        return cars || walls;
     }
 
     public Collection<Car> getNeighbourCars(Car car) {

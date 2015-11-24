@@ -69,6 +69,10 @@ public class Rectangle {
         return Arrays.asList(getTopLeft(), getTopRight(), getBottomRight(), getBottomLeft());
     }
 
+    public Rectangle addWidth(double dWidth) {
+        return new Rectangle(center, width + dWidth, height, angle, cos, sin);
+    }
+
     public boolean isInner(Point point) {
         return within(getPoints(), point);
     }
@@ -105,23 +109,13 @@ public class Rectangle {
             if (first == null) {
                 first = current;
             } else if (MathUtil.orientedArea(prev, current, point) > 0) {
-                System.out.println("Rejected: " + MathUtil.orientedArea(prev, current, point) + ". " + prev + "->" + current + "->" + point);
-
                 return false;
-            } else {
-                System.out.println("Accepted: " + MathUtil.orientedArea(prev, current, point) + ". " + prev + "->" + current + "->" + point);
             }
 
             prev = current;
         }
 
-        if (first != null && prev != null && MathUtil.orientedArea(prev, first, point) < 0) {
-            System.out.println("Accepted: " + MathUtil.orientedArea(prev, first, point) + ". " + prev + "->" + first + "->" + point);
-            return true;
-        } else {
-            System.out.println("Rejected: " + MathUtil.orientedArea(prev, first, point) + ". " + prev + "->" + first + "->" + point);
-            return false;
-        }
+        return first != null && prev != null && MathUtil.orientedArea(prev, first, point) <= 0;
     }
 
     @Override

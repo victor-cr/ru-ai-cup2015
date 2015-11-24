@@ -17,13 +17,15 @@ public class TileInfo {
     public final Direction in;
     public final Direction out;
     public final Collection<Line> walls;
+    public final Collection<Marker> markers;
 
-    public TileInfo(int index, int x, int y, Direction in, Direction out, Collection<Line> walls) {
+    public TileInfo(int index, int x, int y, Direction in, Direction out, Collection<Line> walls, Collection<Marker> markers) {
         this.index = index;
         this.x = x;
         this.y = y;
         this.in = in;
         this.out = out;
         this.walls = walls;
+        this.markers = markers;
     }
 }

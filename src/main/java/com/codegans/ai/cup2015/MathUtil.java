@@ -29,6 +29,12 @@ public class MathUtil {
     }
 
     public static double orientedArea(Point first, Point second, Point third) {
+        double x1 = first.x;
+        double x2 = second.x;
+        double x3 = third.x;
+        double y1 = first.y;
+        double y2 = second.y;
+        double y3 = third.y;
 //        #abc
 //        #def
 //        #ghi
@@ -38,7 +44,9 @@ public class MathUtil {
 //        # (a-g)(e-h)+(g-d)(b-h)
 //        # (x1-x3)(y2-y3)+(x3-x2)(y1-y3)
 
-        return (first.x - third.x) * (second.y - third.y) - (third.x - second.x) * (first.y - third.y);
+//        return (first.x - third.x) * (second.y - third.y) - (third.x - second.x) * (first.y - third.y);
+        return (y2 - y1) * (x3 - x1) - (x2 - x1) * (y3 - y1);
+//        return (first.x - third.x) * (second.y - third.y) - (third.x - second.x) * (first.y - third.y);
     }
 
     public static double orientedArea(Line line, Point point) {
