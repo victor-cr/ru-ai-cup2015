@@ -4,7 +4,10 @@ group = "com.codegans.ai.cup2015"
 version = "1.0"
 
 repositories {
-  jcenter()
+    jcenter()
+    maven {
+        url "http://bicsjava.bc/nexus/content/groups/public"
+    }
 }
 
 sourceCompatibility = "1.8"
@@ -12,48 +15,48 @@ targetCompatibility = "1.8"
 compileJava.options.encoding = "UTF-8"
 
 dependencies {
-  testCompile "junit:junit:4.12"
+    testCompile "junit:junit:4.12"
 }
 
 task copySources(type: Sync) {
-  into "$buildDir/tmpSources"
-  from("src/main/java") {
-    include "model/*.java"
-    include "*Strategy.java"
-    exclude "**/visualize"
-  }
-  from fileTree("src/main/java/${project.group.replace('.', '/')}").files
+    into "$buildDir/tmpSources"
+    from("src/main/java") {
+        include "model/*.java"
+        include "*Strategy.java"
+        exclude "**/visualize"
+    }
+    from fileTree("src/main/java/${project.group.replace('.', '/')}").files
 }
 
 task fixSources(type: Sync, dependsOn: copySources) {
-  def importStatement = "import " + project.group
-  def packageStatement = "package " + project.group
+    def importStatement = "import " + project.group
+    def packageStatement = "package " + project.group
 
-  into "$buildDir/sources"
-  from "$buildDir/tmpSources"
-  eachFile { detail ->
-    detail.file.text = detail.file.text
-            .replace(packageStatement, "//" + packageStatement)
-            .replace(importStatement, "//" + importStatement)
-            .replaceAll("(?ms)/\\*\\*.*?\\*/", "")
-            .replaceAll("//.*", "")
+    into "$buildDir/sources"
+    from "$buildDir/tmpSources"
+    eachFile { detail ->
+        detail.file.text = detail.file.text
+                .replace(packageStatement, "//" + packageStatement)
+                .replace(importStatement, "//" + importStatement)
+                .replaceAll("(?ms)/\\*\\*.*?\\*/", "")
+                .replaceAll("//.*", "")
 
-  }
+    }
 }
 
 task zipSources(type: Zip) {
-  classifier = 'src'
-  from "$buildDir/sources"
-  include "*.java"
-  exclude "Strategy.java"
+    classifier = 'src'
+    from "$buildDir/sources"
+    include "*.java"
+    exclude "Strategy.java"
 }
 
 task testSources(type: JavaCompile) {
-  source = "$buildDir/sources"
-  include "*.java"
-  include "model/*.java"
-  classpath = sourceSets.main.compileClasspath
-  destinationDir = file("$buildDir/testSources")
+    source = "$buildDir/sources"
+    include "*.java"
+    include "model/*.java"
+    classpath = sourceSets.main.compileClasspath
+    destinationDir = file("$buildDir/testSources")
 }
 
 //testSources.options.compilerArgs = ["-sourcepath", "$buildDir/sources"]
@@ -64,5 +67,5 @@ assemble.dependsOn += zipSources
 testClasses.dependsOn += testSources
 
 task wrapper(type: Wrapper) {
-  gradleVersion = "2.9"
+    gradleVersion = "2.9"
 }

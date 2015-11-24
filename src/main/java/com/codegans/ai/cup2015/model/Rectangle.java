@@ -50,19 +50,19 @@ public class Rectangle {
     }
 
     public Point getTopLeft() {
-        return MathUtil.rotate(new Point(-width / 2, height / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(height / 2, -width / 2), cos, sin).add(center);
     }
 
     public Point getTopRight() {
-        return MathUtil.rotate(new Point(width / 2, height / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(height / 2, width / 2), cos, sin).add(center);
     }
 
     public Point getBottomRight() {
-        return MathUtil.rotate(new Point(-width / 2, height / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(-height / 2, width / 2), cos, sin).add(center);
     }
 
     public Point getBottomLeft() {
-        return MathUtil.rotate(new Point(-width / 2, -height / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(-height / 2, -width / 2), cos, sin).add(center);
     }
 
     public Collection<Point> getPoints() {

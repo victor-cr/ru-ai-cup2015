@@ -13,6 +13,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import static java.lang.StrictMath.PI;
+import static java.lang.StrictMath.abs;
+
 /**
  * JavaDoc here
  *
@@ -20,7 +23,7 @@ import java.util.Collections;
  * @since 24.11.2015 2:03
  */
 public class ShootDecision implements Decision {
-    private static final double BASE_ANGLE = StrictMath.PI / 12;
+    private static final double BASE_ANGLE = PI / 12;
 
     @Override
     public Collection<Action<?>> decide(Car self, World world, Game game, Move move, Navigator navigator) {
@@ -30,6 +33,7 @@ public class ShootDecision implements Decision {
             boolean sureShoot = Arrays.stream(world.getCars())
                     .filter(e -> !e.isFinishedTrack())
                     .filter(e -> !e.isTeammate())
+                    .filter(e -> abs(self.getAngleTo(e)) < BASE_ANGLE) // ??
                     .filter(e -> self.getDistanceTo(e) <= maxDistance)
                     .filter(e -> self.getDistanceTo(e) >= self.getHeight())
                     .anyMatch(e -> BASE_ANGLE * self.getHeight() / self.getDistanceTo(e) >= self.getAngleTo(e));
