@@ -1,4 +1,4 @@
-package com.codegans.visualize;
+package com.codegans.ai.visualize;
 
 import com.codegans.ai.cup2015.StrategyDelegate;
 import com.codegans.ai.cup2015.MathUtil;

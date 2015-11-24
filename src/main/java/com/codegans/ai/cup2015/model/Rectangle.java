@@ -50,19 +50,19 @@ public class Rectangle {
     }
 
     public Point getTopLeft() {
-        return MathUtil.rotate(new Point(height / 2, -width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(-width / 2, height / 2), cos, sin).add(center);
     }
 
     public Point getTopRight() {
-        return MathUtil.rotate(new Point(height / 2, width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(width / 2, height / 2), cos, sin).add(center);
     }
 
     public Point getBottomRight() {
-        return MathUtil.rotate(new Point(-height / 2, width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(-width / 2, height / 2), cos, sin).add(center);
     }
 
     public Point getBottomLeft() {
-        return MathUtil.rotate(new Point(-height / 2, -width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(-width / 2, -height / 2), cos, sin).add(center);
     }
 
     public Collection<Point> getPoints() {
@@ -77,7 +77,8 @@ public class Rectangle {
         Collection<Point> thisPoints = getPoints();
         Collection<Point> thatPoints = rectangle.getPoints();
 
-        return thatPoints.stream().anyMatch(e -> within(thisPoints, e)) || thisPoints.stream().anyMatch(e -> within(thatPoints, e));
+        return thisPoints.stream().anyMatch(e -> within(thatPoints, e))
+                || thatPoints.stream().anyMatch(e -> within(thisPoints, e));
     }
 
     public boolean hasCollision(Line line) {
@@ -103,13 +104,28 @@ public class Rectangle {
         for (Point current : area) {
             if (first == null) {
                 first = current;
-            } else if (MathUtil.orientedArea(prev, current, point) < 0) {
+            } else if (MathUtil.orientedArea(prev, current, point) > 0) {
+                System.out.println("Rejected: " + MathUtil.orientedArea(prev, current, point) + ". " + prev + "->" + current + "->" + point);
+
                 return false;
+            } else {
+                System.out.println("Accepted: " + MathUtil.orientedArea(prev, current, point) + ". " + prev + "->" + current + "->" + point);
             }
 
             prev = current;
         }
 
-        return first != null && prev != null && MathUtil.orientedArea(prev, first, point) >= 0;
+        if (first != null && prev != null && MathUtil.orientedArea(prev, first, point) < 0) {
+            System.out.println("Accepted: " + MathUtil.orientedArea(prev, first, point) + ". " + prev + "->" + first + "->" + point);
+            return true;
+        } else {
+            System.out.println("Rejected: " + MathUtil.orientedArea(prev, first, point) + ". " + prev + "->" + first + "->" + point);
+            return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return getPoints().toString();
     }
 }

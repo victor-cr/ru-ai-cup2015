@@ -28,8 +28,8 @@ public class ShootDecision implements Decision {
             double maxDistance = self.getHeight() * 4;
 
             boolean sureShoot = Arrays.stream(world.getCars())
-                    .filter(Car::isFinishedTrack)
-                    .filter(Car::isTeammate)
+                    .filter(e -> !e.isFinishedTrack())
+                    .filter(e -> !e.isTeammate())
                     .filter(e -> self.getDistanceTo(e) <= maxDistance)
                     .filter(e -> self.getDistanceTo(e) >= self.getHeight())
                     .anyMatch(e -> BASE_ANGLE * self.getHeight() / self.getDistanceTo(e) >= self.getAngleTo(e));

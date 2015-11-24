@@ -56,7 +56,9 @@ public class CollisionDetector {
     }
 
     private Stream<Car> getNeighbourCars(Car car, Rectangle zone) {
-        return Arrays.stream(world.getCars()).filter(e -> e.getId() != car.getId()).filter(e -> new Rectangle(e).hasCollision(zone));
+        return Arrays.stream(world.getCars())
+                .filter(e -> e.getId() != car.getId())
+                .filter(e -> zone.hasCollision(new Rectangle(e)));
     }
 
     private Stream<Line> getNeighbourWalls(Car car, Rectangle zone) {

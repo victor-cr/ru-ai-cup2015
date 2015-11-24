@@ -21,7 +21,7 @@ import java.util.Collections;
  * @since 24.11.2015 2:03
  */
 public class NitroDecision implements Decision {
-    private static final int THRESHOLD = 9;
+    private static final int THRESHOLD = 7;
 
     @Override
     public Collection<Action<?>> decide(Car self, World world, Game game, Move move, Navigator navigator) {
