@@ -4,6 +4,7 @@ import com.codegans.ai.cup2015.action.Action;
 import com.codegans.ai.cup2015.decision.Decision;
 import com.codegans.ai.cup2015.decision.MoveDecision;
 import com.codegans.ai.cup2015.decision.NitroDecision;
+import com.codegans.ai.cup2015.decision.ShootDecision;
 import com.codegans.ai.cup2015.decision.SpeedDecision;
 import com.codegans.ai.cup2015.decision.TurnDecision;
 import com.codegans.ai.cup2015.decision.UnstuckDecision;
@@ -32,7 +33,8 @@ public class StrategyDelegate {
             new SpeedDecision(),
             new TurnDecision(),
             new UnstuckDecision(),
-            new NitroDecision()
+            new NitroDecision(),
+            new ShootDecision()
     );
 
     public Collection<Action<?>> debugActions(Car self, World world, Game game, Move move) {

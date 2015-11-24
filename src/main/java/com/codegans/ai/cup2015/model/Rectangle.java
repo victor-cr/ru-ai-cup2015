@@ -85,12 +85,9 @@ public class Rectangle {
 
         long count = points.stream()
                 .mapToDouble(e -> MathUtil.orientedArea(line, e))
-                .peek(System.out::print)
-                .peek(e -> System.out.print(","))
                 .filter(e -> e < 0)
                 .count();
 
-        System.out.println(line + ": " + count);
 
         return count != 0 && count != points.size();
     }
