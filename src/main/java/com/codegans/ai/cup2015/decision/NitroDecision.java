@@ -1,5 +1,6 @@
 package com.codegans.ai.cup2015.decision;
 
+import com.codegans.ai.cup2015.MathUtil;
 import com.codegans.ai.cup2015.Navigator;
 import com.codegans.ai.cup2015.Priority;
 import com.codegans.ai.cup2015.action.Action;
@@ -27,8 +28,9 @@ public class NitroDecision implements Decision {
         if (self.getNitroChargeCount() != 0 && self.getRemainingNitroCooldownTicks() == 0 && self.getRemainingNitroTicks() == 0) {
 
             TileInfo tile = navigator.getNextTurnTile(self);
+            TileInfo current = navigator.getCurrentTile(self);
 
-            if (tile.index > THRESHOLD) {
+            if (tile.index > THRESHOLD && current.in == MathUtil.opposite(current.out)) {
                 return Collections.singleton(new NitroAction(Priority.NORMAL));
             }
         }
