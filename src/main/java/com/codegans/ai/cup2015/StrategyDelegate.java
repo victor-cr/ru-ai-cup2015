@@ -1,9 +1,9 @@
 package com.codegans.ai.cup2015;
 
-import com.codegans.ai.cup2015.Navigator;
 import com.codegans.ai.cup2015.action.Action;
 import com.codegans.ai.cup2015.decision.Decision;
 import com.codegans.ai.cup2015.decision.MoveDecision;
+import com.codegans.ai.cup2015.decision.NitroDecision;
 import com.codegans.ai.cup2015.decision.SpeedDecision;
 import com.codegans.ai.cup2015.decision.TurnDecision;
 import com.codegans.ai.cup2015.decision.UnstuckDecision;
@@ -31,7 +31,8 @@ public class StrategyDelegate {
             new MoveDecision(),
             new SpeedDecision(),
             new TurnDecision(),
-            new UnstuckDecision()
+            new UnstuckDecision(),
+            new NitroDecision()
     );
 
     public Collection<Action<?>> debugActions(Car self, World world, Game game, Move move) {
@@ -46,6 +47,7 @@ public class StrategyDelegate {
                 .sorted()
                 .collect(Collectors.toMap(Action::getClass, e -> e, (l, r) -> l, HashMap::new))
                 .values().stream()
+                .sorted()
                 .peek(log::action)
                 .collect(Collectors.toList());
     }

@@ -42,11 +42,11 @@ public class Rectangle {
     }
 
     public Rectangle topHalf() {
-        return new Rectangle(MathUtil.rotate(new Point(-height / 4, 0), cos, sin).add(center), width, height / 2, angle, cos, sin);
+        return new Rectangle(MathUtil.rotate(new Point(height / 4, 0), cos, sin).add(center), width, height / 2, angle, cos, sin);
     }
 
     public Rectangle lowHalf() {
-        return new Rectangle(MathUtil.rotate(new Point(height / 4, 0), cos, sin).add(center), width, height / 2, angle, cos, sin);
+        return new Rectangle(MathUtil.rotate(new Point(-height / 4, 0), cos, sin).add(center), width, height / 2, angle, cos, sin);
     }
 
     public Point getTopLeft() {

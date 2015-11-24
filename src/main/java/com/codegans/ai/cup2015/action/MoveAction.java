@@ -4,8 +4,6 @@ import com.codegans.ai.cup2015.model.Point;
 import model.Move;
 import model.Unit;
 
-import java.util.Formatter;
-
 import static java.lang.StrictMath.PI;
 
 /**
@@ -43,6 +41,6 @@ public class MoveAction extends BaseAction<MoveAction> {
 
     @Override
     public String toString() {
-        return super.toString() + new Formatter().format("(%.5f)", angle);
+        return super.toString() + String.format("(%.5f)", angle);
     }
 }

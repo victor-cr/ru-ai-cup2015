@@ -11,4 +11,5 @@ public interface Priority {
     int HIGH = TOP << 6;
     int NORMAL = HIGH << 2;
     int LOW = HIGH << 1;
+    int NONE = Integer.MAX_VALUE;
 }

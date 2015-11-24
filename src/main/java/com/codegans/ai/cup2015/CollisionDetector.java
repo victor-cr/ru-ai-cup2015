@@ -18,6 +18,7 @@ import java.util.stream.Stream;
  * @since 22.11.2015 20:05
  */
 public class CollisionDetector {
+    private static final double RADIUS = 20.0D;
     private final World world;
     private final Game game;
     private final Navigator navigator;
@@ -28,30 +29,30 @@ public class CollisionDetector {
         this.navigator = navigator;
     }
 
-    public boolean hasCollision(Car car, double radius) {
-        Rectangle zone = new Rectangle(car, radius);
+    public boolean hasCollision(Car car) {
+        Rectangle zone = new Rectangle(car, RADIUS);
 
         return getNeighbourCars(car, zone).anyMatch(e -> true) || getNeighbourWalls(car, zone).anyMatch(e -> true);
     }
 
-    public boolean hasFrontalCollision(Car car, double radius) {
-        Rectangle zone = new Rectangle(car, radius).topHalf();
+    public boolean hasFrontalCollision(Car car) {
+        Rectangle zone = new Rectangle(car, RADIUS).topHalf();
 
         return getNeighbourCars(car, zone).anyMatch(e -> true) || getNeighbourWalls(car, zone).anyMatch(e -> true);
     }
 
-    public boolean hasBackwardCollision(Car car, double radius) {
-        Rectangle zone = new Rectangle(car, radius).lowHalf();
+    public boolean hasBackwardCollision(Car car) {
+        Rectangle zone = new Rectangle(car, RADIUS).lowHalf();
 
         return getNeighbourCars(car, zone).anyMatch(e -> true) || getNeighbourWalls(car, zone).anyMatch(e -> true);
     }
 
-    public Collection<Car> getNeighbourCars(Car car, double radius) {
-        return getNeighbourCars(car, new Rectangle(car, radius)).collect(Collectors.toList());
+    public Collection<Car> getNeighbourCars(Car car) {
+        return getNeighbourCars(car, new Rectangle(car, RADIUS)).collect(Collectors.toList());
     }
 
-    public Collection<Line> getNeighbourWalls(Car car, double radius) {
-        return getNeighbourWalls(car, new Rectangle(car, radius)).collect(Collectors.toList());
+    public Collection<Line> getNeighbourWalls(Car car) {
+        return getNeighbourWalls(car, new Rectangle(car, RADIUS)).collect(Collectors.toList());
     }
 
     private Stream<Car> getNeighbourCars(Car car, Rectangle zone) {

@@ -41,7 +41,8 @@ public class ConsoleLogger implements Logger {
         TileInfo info = navigator.getCurrentTile(car);
         double speed = StrictMath.hypot(car.getSpeedX(), car.getSpeedY());
 
-        printf("Car with %.1f%% at: [%d,%d] (%5.3f;%5.3f). Angle: %.3f. Speed: %.3f/%.3f. Wheels: %.3f. Engine: %.3f. Waypoint #%d: (%d;%d)%n", car.getDurability() * 100, info.x, info.y, car.getX(), car.getY(), car.getAngle(), speed, car.getAngularSpeed(), car.getWheelTurn(), car.getEnginePower(), car.getNextWaypointIndex(), car.getNextWaypointX(), car.getNextWaypointY());
+        printf("Car with %.1f%% at: [%d,%d] (%.3f;%.3f) %.1fx%.1f. Angle: %.3f. Speed: %.3f/%.3f. Wheels: %.3f. Engine: %.3f. Waypoint #%d: (%d;%d)%n",
+                car.getDurability() * 100, info.x, info.y, car.getX(), car.getY(), car.getWidth(), car.getHeight(), car.getAngle(), speed, car.getAngularSpeed(), car.getWheelTurn(), car.getEnginePower(), car.getNextWaypointIndex(), car.getNextWaypointX(), car.getNextWaypointY());
     }
 
     @Override
