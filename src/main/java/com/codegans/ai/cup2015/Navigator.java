@@ -2,9 +2,9 @@ package com.codegans.ai.cup2015;
 
 import com.codegans.ai.cup2015.log.Logger;
 import com.codegans.ai.cup2015.log.LoggerFactory;
-import com.codegans.ai.cup2015.model.Line;
 import com.codegans.ai.cup2015.model.Marker;
 import com.codegans.ai.cup2015.model.TileInfo;
+import com.codegans.ai.cup2015.model.Wall;
 import model.Car;
 import model.Direction;
 import model.Game;
@@ -25,9 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.lang.StrictMath.PI;
-import static java.lang.StrictMath.cos;
-import static java.lang.StrictMath.sin;
+import static java.lang.StrictMath.*;
 
 /**
  * JavaDoc here
@@ -165,7 +163,7 @@ public class Navigator {
         do {
             Tile current = startTile;
 
-             do {
+            do {
                 if (current.waypointIndex == nextWaypointIndex
                         && (current.x == x - radius && current.y == y
                         || current.x == x + radius && current.y == y
@@ -196,6 +194,7 @@ public class Navigator {
         int startX = waypoints[0][0];
         int startY = waypoints[0][1];
         boolean incomplete = false;
+        Direction priorityDirection = world.getStartingDirection();
 
         for (int j = 0; j <= waypoints.length; j++) {
             int[] waypoint = waypoints[j % waypoints.length];
@@ -220,6 +219,16 @@ public class Navigator {
                 Set<Direction> directions = MathUtil.fromTileType(field[point.x][point.y]);
 
                 if (directions != null) {
+                    if (directions.contains(priorityDirection)) {
+                        int x = point.x + MathUtil.dx(priorityDirection);
+                        int y = point.y + MathUtil.dy(priorityDirection);
+
+                        if (progress[x][y] == null) {
+                            progress[x][y] = Optional.of(priorityDirection);
+                            queue.offer(new Point(x, y));
+                        }
+                    }
+
                     for (Direction direction : directions) {
                         int x = point.x + MathUtil.dx(direction);
                         int y = point.y + MathUtil.dy(direction);
@@ -237,6 +246,8 @@ public class Navigator {
             int x = startX = finishX;
             int y = startY = finishY;
             int k = 1;
+
+            priorityDirection = progress[x][y].orElse(priorityDirection);
 
             for (Optional<Direction> direction = progress[x][y]; direction != null && direction.isPresent(); direction = progress[x][y]) {
                 route.add(i, new Tile(x, y, (j + k) % waypoints.length, MathUtil.fromTileType(field[x][y])));
@@ -267,21 +278,6 @@ public class Navigator {
             tile.prev = prev;
             prev = prev.next = tile;
         }
-
-        double halfSize = INSTANCE.tileSize / 2;
-        double margin = INSTANCE.tileMargin;
-
-        route.forEach(t -> Arrays.stream(Direction.values()).filter(e -> e != t.in && e != t.out).map(e -> {
-            int dx = MathUtil.dx(e);
-            int dy = MathUtil.dy(e);
-
-            return new Line(
-                    (t.x + t.x + 1 + dx + dy) * halfSize - dx * margin,
-                    (t.y + t.y + 1 + dy + dx) * halfSize - dy * margin,
-                    (t.x + t.x + 1 + dx - dy) * halfSize - dx * margin,
-                    (t.y + t.y + 1 + dy - dx) * halfSize - dy * margin
-            );
-        }).forEach(t.tileWalls::add));
 
         startTile = prev;
 
@@ -359,7 +355,7 @@ public class Navigator {
         private final int y;
         private final int waypointIndex;
         private final Collection<Marker> tileMarkers = new ArrayList<>(TILE_MARKER_SIZE + 1);
-        private final Collection<Line> tileWalls = new ArrayList<>();
+        private final Collection<Wall> tileWalls;
         private Tile prev;
         private Tile next;
         private Direction in;
@@ -370,20 +366,20 @@ public class Navigator {
             this.y = y;
             this.waypointIndex = waypointIndex;
 
-//            double halfSize = INSTANCE.tileSize / 2;
-//            double margin = INSTANCE.tileMargin;
+            double halfSize = INSTANCE.tileSize / 2;
+            double margin = INSTANCE.tileMargin;
 
-//            tileWalls = Arrays.stream(Direction.values()).filter(e -> !directions.contains(e)).map(e -> {
-//                int dx = MathUtil.dx(e);
-//                int dy = MathUtil.dy(e);
-//
-//                return new Line(
-//                        (x + x + 1 + dx + dy) * halfSize - dx * margin,
-//                        (y + y + 1 + dy + dx) * halfSize - dy * margin,
-//                        (x + x + 1 + dx - dy) * halfSize - dx * margin,
-//                        (y + y + 1 + dy - dx) * halfSize - dy * margin
-//                );
-//            }).collect(Collectors.toList());
+            tileWalls = Arrays.stream(Direction.values()).filter(e -> !directions.contains(e)).map(e -> {
+                int dx = MathUtil.dx(e);
+                int dy = MathUtil.dy(e);
+
+                return new Wall(e,
+                        (x + x + 1 + dx + dy) * halfSize - dx * margin,
+                        (y + y + 1 + dy + dx) * halfSize - dy * margin,
+                        (x + x + 1 + dx - dy) * halfSize - dx * margin,
+                        (y + y + 1 + dy - dx) * halfSize - dy * margin
+                );
+            }).collect(Collectors.toList());
         }
 
         public TileInfo create() {
@@ -391,7 +387,7 @@ public class Navigator {
         }
 
         public TileInfo create(int i) {
-            return new TileInfo(i, x, y, in, out, new ArrayList<>(tileWalls), new ArrayList<>(tileMarkers));
+            return new TileInfo(i, x, y, INSTANCE.tileMargin, INSTANCE.tileSize, in, out, new ArrayList<>(tileWalls), new ArrayList<>(tileMarkers));
         }
 
         @Override

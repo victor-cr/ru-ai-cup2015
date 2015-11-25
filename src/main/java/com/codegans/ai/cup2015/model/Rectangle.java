@@ -73,6 +73,10 @@ public class Rectangle {
         return new Rectangle(center, width + dWidth, height, angle, cos, sin);
     }
 
+    public Rectangle addHeight(double dWidth) {
+        return new Rectangle(center, width, height + dWidth, angle, cos, sin);
+    }
+
     public boolean isInner(Point point) {
         return within(getPoints(), point);
     }
@@ -101,6 +105,20 @@ public class Rectangle {
         return !isInner(point);
     }
 
+    public Collection<Line> getLines() {
+        Point topLeft = getTopLeft();
+        Point topRight = getTopRight();
+        Point bottomRight = getBottomRight();
+        Point bottomLeft = getBottomLeft();
+
+        return Arrays.asList(
+                new Line(topLeft, topRight),
+                new Line(topRight, bottomRight),
+                new Line(bottomRight, bottomLeft),
+                new Line(bottomLeft, topLeft)
+        );
+    }
+
     private static boolean within(Collection<Point> area, Point point) {
         Point first = null;
         Point prev = null;
@@ -108,14 +126,18 @@ public class Rectangle {
         for (Point current : area) {
             if (first == null) {
                 first = current;
-            } else if (MathUtil.orientedArea(prev, current, point) > 0) {
-                return false;
+            } else {
+                double orientedArea = MathUtil.orientedArea(prev, current, point);
+
+                if (orientedArea < 0) {
+                    return false;
+                }
             }
 
             prev = current;
         }
 
-        return first != null && prev != null && MathUtil.orientedArea(prev, first, point) <= 0;
+        return first != null && prev != null && MathUtil.orientedArea(prev, first, point) >= 0;
     }
 
     @Override

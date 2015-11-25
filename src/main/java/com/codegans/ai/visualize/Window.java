@@ -1,8 +1,8 @@
 package com.codegans.ai.visualize;
 
-import com.codegans.ai.cup2015.StrategyDelegate;
 import com.codegans.ai.cup2015.MathUtil;
 import com.codegans.ai.cup2015.Navigator;
+import com.codegans.ai.cup2015.StrategyDelegate;
 import com.codegans.ai.cup2015.action.Action;
 import com.codegans.ai.cup2015.action.MoveAction;
 import com.codegans.ai.cup2015.model.Marker;
@@ -18,6 +18,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
+import javafx.scene.shape.PathElement;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 import javafx.stage.Stage;
@@ -37,7 +38,9 @@ import model.World;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static java.lang.StrictMath.PI;
 import static java.lang.StrictMath.abs;
@@ -144,6 +147,26 @@ public class Window extends Application {
                 } else if (event.getButton() == MouseButton.SECONDARY) {
                     com.codegans.ai.cup2015.model.Rectangle r = new com.codegans.ai.cup2015.model.Rectangle(new Point(mouseX, mouseY), 100, 200, new Random().nextDouble() * 2 * PI - PI);
 
+                    List<Point> selfXY = Arrays.asList(new Point(1286.059, 7616.658), new Point(1101.907, 7515.722), new Point(1135.553, 7454.338), new Point(1319.705, 7555.274)).stream()
+                            .map(e -> new Point(e.x / 10, e.y / 10)).collect(Collectors.toList());
+                    List<Point> obstacleXY = Arrays.asList(new Point(893.678, 7664.707), new Point(995.355, 7480.964), new Point(1117.850, 7548.748), new Point(1016.173, 7732.492)).stream()
+                            .map(e -> new Point(e.x / 10, e.y / 10)).collect(Collectors.toList());
+
+                    List<PathElement> selfPath = selfXY.stream().map(e -> new LineTo(e.x + padding, e.y + padding)).collect(Collectors.toList());
+                    List<PathElement> obstaclePath = obstacleXY.stream().map(e -> new LineTo(e.x + padding, e.y + padding)).collect(Collectors.toList());
+
+                    selfPath.add(new LineTo(selfXY.get(0).x + padding, selfXY.get(0).y + padding));
+                    selfPath.add(0, new MoveTo(selfXY.get(selfXY.size() - 1).x + padding, selfXY.get(selfXY.size() - 1).y + padding));
+
+                    obstaclePath.add(new LineTo(obstacleXY.get(0).x + padding, obstacleXY.get(0).y + padding));
+                    obstaclePath.add(0, new MoveTo(obstacleXY.get(obstacleXY.size() - 1).x + padding, obstacleXY.get(obstacleXY.size() - 1).y + padding));
+
+                    Path self = new Path(selfPath);
+                    Path obstacle = new Path(obstaclePath);
+
+                    self.setFill(Color.web("red", 0.5));
+                    obstacle.setFill(Color.web("brown", 0.5));
+
                     Path rectangle = new Path(
                             new MoveTo(r.getTopLeft().x + padding, r.getTopLeft().y + padding),
                             new LineTo(r.getTopLeft().x + (r.getTopRight().x - r.getTopLeft().x) / 2 + (r.center.x - r.getTopLeft().x) / 10 + padding, r.getTopLeft().y + (r.getTopRight().y - r.getTopLeft().y) / 2 + (r.center.y - r.getTopLeft().y) / 10 + padding),
@@ -157,7 +180,7 @@ public class Window extends Application {
 
                     System.out.println("===================== " + r.angle);
 
-                    markers.getChildren().addAll(rectangle);
+                    markers.getChildren().addAll(rectangle, obstacle, self);
                 } else if (event.getButton() == MouseButton.MIDDLE) {
                     Move move = new Move();
 
@@ -185,42 +208,9 @@ public class Window extends Application {
     }
 
     private World setupWorld() {
-//        int[][] waypoints = new int[][]{{1, 0}, {0, 1}, {2, 2}};
-        int[][] waypoints = new int[][]{
-                {3, 5}, {3, 0}, {0, 0}, {0, 3}, {15, 3}, {15, 0}, {12, 0}, {12, 6}, {9, 6}, {9, 0},
-                {6, 0}, {6, 15}, {12, 15}, {12, 9}, {15, 9}, {15, 12}, {0, 9}, {0, 6}, {6, 6}, {6, 12},
-                {0, 12}, {0, 15}, {3, 15}};
+        int[][] waypoints = new int[][]{{8, 9}, {1, 9}, {1, 0}, {1, 11}, {11, 11}, {11, 0}, {5, 0}, {5, 4}, {7, 4}, {7, 2}, {9, 2}, {9, 9}};
 
-        TileType[][] field = {
-                {TileType.LEFT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.LEFT_BOTTOM_CORNER, TileType.EMPTY, TileType.EMPTY, TileType.LEFT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.LEFT_BOTTOM_CORNER, TileType.EMPTY, TileType.EMPTY, TileType.LEFT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.LEFT_BOTTOM_CORNER},
-                {TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL},
-                {TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL},
-                {TileType.RIGHT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.CROSSROADS, TileType.VERTICAL, TileType.VERTICAL, TileType.CROSSROADS, TileType.VERTICAL, TileType.VERTICAL, TileType.CROSSROADS, TileType.VERTICAL, TileType.VERTICAL, TileType.CROSSROADS, TileType.VERTICAL, TileType.VERTICAL, TileType.RIGHT_BOTTOM_CORNER},
-                {TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY},
-                {TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY},
-                {TileType.LEFT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.CROSSROADS, TileType.VERTICAL, TileType.VERTICAL, TileType.LEFT_HEADED_T, TileType.VERTICAL, TileType.VERTICAL, TileType.CROSSROADS, TileType.VERTICAL, TileType.VERTICAL, TileType.LEFT_HEADED_T, TileType.VERTICAL, TileType.VERTICAL, TileType.LEFT_BOTTOM_CORNER},
-                {TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL},
-                {TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL},
-                {TileType.RIGHT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.CROSSROADS, TileType.VERTICAL, TileType.VERTICAL, TileType.LEFT_BOTTOM_CORNER, TileType.EMPTY, TileType.EMPTY, TileType.RIGHT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.LEFT_BOTTOM_CORNER, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL},
-                {TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL},
-                {TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL},
-                {TileType.LEFT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.CROSSROADS, TileType.VERTICAL, TileType.VERTICAL, TileType.RIGHT_BOTTOM_CORNER, TileType.EMPTY, TileType.EMPTY, TileType.LEFT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.CROSSROADS, TileType.VERTICAL, TileType.VERTICAL, TileType.RIGHT_BOTTOM_CORNER},
-                {TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY},
-                {TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY},
-                {TileType.RIGHT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.RIGHT_BOTTOM_CORNER, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.RIGHT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.RIGHT_BOTTOM_CORNER, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY}
-        };
-
-//        field[0][0] = TileType.LEFT_TOP_CORNER;
-//        field[0][1] = TileType.VERTICAL;
-//        field[0][2] = TileType.LEFT_BOTTOM_CORNER;
-//
-//        field[1][0] = TileType.HORIZONTAL;
-//        field[1][1] = TileType.EMPTY;
-//        field[1][2] = TileType.HORIZONTAL;
-//
-//        field[2][0] = TileType.RIGHT_TOP_CORNER;
-//        field[2][1] = TileType.VERTICAL;
-//        field[2][2] = TileType.RIGHT_BOTTOM_CORNER;
+        TileType[][] field = {{TileType.LEFT_TOP_CORNER, TileType.VERTICAL, TileType.RIGHT_HEADED_T, TileType.RIGHT_HEADED_T, TileType.RIGHT_HEADED_T, TileType.RIGHT_HEADED_T, TileType.RIGHT_HEADED_T, TileType.LEFT_BOTTOM_CORNER, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY}, {TileType.HORIZONTAL, TileType.EMPTY, TileType.BOTTOM_HEADED_T, TileType.CROSSROADS, TileType.CROSSROADS, TileType.CROSSROADS, TileType.CROSSROADS, TileType.CROSSROADS, TileType.VERTICAL, TileType.RIGHT_HEADED_T, TileType.VERTICAL, TileType.LEFT_BOTTOM_CORNER}, {TileType.RIGHT_TOP_CORNER, TileType.VERTICAL, TileType.LEFT_HEADED_T, TileType.LEFT_HEADED_T, TileType.LEFT_HEADED_T, TileType.LEFT_HEADED_T, TileType.LEFT_HEADED_T, TileType.RIGHT_BOTTOM_CORNER, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.HORIZONTAL}, {TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.HORIZONTAL}, {TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.HORIZONTAL}, {TileType.LEFT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.LEFT_BOTTOM_CORNER, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.HORIZONTAL}, {TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.HORIZONTAL}, {TileType.HORIZONTAL, TileType.EMPTY, TileType.LEFT_TOP_CORNER, TileType.VERTICAL, TileType.RIGHT_BOTTOM_CORNER, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.HORIZONTAL}, {TileType.HORIZONTAL, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL, TileType.EMPTY, TileType.HORIZONTAL}, {TileType.HORIZONTAL, TileType.EMPTY, TileType.RIGHT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.RIGHT_BOTTOM_CORNER, TileType.EMPTY, TileType.HORIZONTAL}, {TileType.HORIZONTAL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.HORIZONTAL}, {TileType.RIGHT_TOP_CORNER, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.VERTICAL, TileType.RIGHT_BOTTOM_CORNER}};
 
         return new World(0, 0, 0, field.length, field[0].length,
                 new Player[0], new Car[0], new Projectile[0], new Bonus[0], new OilSlick[0],

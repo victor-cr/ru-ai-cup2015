@@ -85,15 +85,17 @@ public class ConsoleLogger implements Logger {
 
     @Override
     public void layout(World world) {
+        int[][] waypoints = world.getWaypoints();
         TileType[][] field = world.getTilesXY();
 
-        for (TileType[] row : field) {
-            for (TileType tile : row) {
-                print(tile.ordinal());
-            }
-
-            print('\n');
-        }
+        print(Arrays.stream(field)
+                .map(e -> Arrays.stream(e).map(Enum::name).map(x -> "TileType." + x).collect(Collectors.joining(",", "{", "}")))
+                .collect(Collectors.joining(",", "{", "}")));
+        print('\n');
+        print(Arrays.stream(waypoints)
+                .map(e -> "{" + e[0] + "," + e[1] + "}")
+                .collect(Collectors.joining(",", "{", "}")));
+        print('\n');
     }
 
     @Override

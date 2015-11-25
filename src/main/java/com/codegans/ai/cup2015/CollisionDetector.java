@@ -2,6 +2,7 @@ package com.codegans.ai.cup2015;
 
 import com.codegans.ai.cup2015.log.Logger;
 import com.codegans.ai.cup2015.log.LoggerFactory;
+import com.codegans.ai.cup2015.model.Column;
 import com.codegans.ai.cup2015.model.Line;
 import com.codegans.ai.cup2015.model.Rectangle;
 import model.Car;
@@ -39,10 +40,11 @@ public class CollisionDetector {
     }
 
     public boolean hasFrontalCollision(Car car) {
-        Rectangle zone = new Rectangle(car).addWidth(RADIUS).topHalf();
+        Rectangle zone = new Rectangle(car).addHeight(RADIUS).topHalf();
 
         boolean cars = getNeighbourCars(car, zone).anyMatch(e -> true);
         boolean walls = getNeighbourWalls(car, zone).anyMatch(e -> true);
+        boolean columns = getNeighbourColumns(car, zone).anyMatch(e -> true);
 
         if (cars) {
             log.printf("Car collision: %s%n", getNeighbourCars(car));
@@ -52,14 +54,19 @@ public class CollisionDetector {
             log.printf("Wall collision: %s%n", getNeighbourWalls(car));
         }
 
-        return cars || walls;
+        if (columns) {
+            log.printf("Column collision: %s%n", getNeighbourColumns(car));
+        }
+
+        return cars || walls || columns;
     }
 
     public boolean hasBackwardCollision(Car car) {
-        Rectangle zone = new Rectangle(car).addWidth(RADIUS).lowHalf();
+        Rectangle zone = new Rectangle(car).addHeight(RADIUS).lowHalf();
 
         boolean cars = getNeighbourCars(car, zone).anyMatch(e -> true);
         boolean walls = getNeighbourWalls(car, zone).anyMatch(e -> true);
+        boolean columns = getNeighbourColumns(car, zone).anyMatch(e -> true);
 
         if (cars) {
             log.printf("Car collision: %s%n", getNeighbourCars(car));
@@ -69,7 +76,11 @@ public class CollisionDetector {
             log.printf("Wall collision: %s%n", getNeighbourWalls(car));
         }
 
-        return cars || walls;
+        if (columns) {
+            log.printf("Column collision: %s%n", getNeighbourColumns(car));
+        }
+
+        return cars || walls || columns;
     }
 
     public Collection<Car> getNeighbourCars(Car car) {
@@ -80,6 +91,10 @@ public class CollisionDetector {
         return getNeighbourWalls(car, new Rectangle(car, RADIUS)).collect(Collectors.toList());
     }
 
+    public Collection<Column> getNeighbourColumns(Car car) {
+        return getNeighbourColumns(car, new Rectangle(car, RADIUS)).collect(Collectors.toList());
+    }
+
     private Stream<Car> getNeighbourCars(Car car, Rectangle zone) {
         return Arrays.stream(world.getCars())
                 .filter(e -> e.getId() != car.getId())
@@ -88,5 +103,9 @@ public class CollisionDetector {
 
     private Stream<Line> getNeighbourWalls(Car car, Rectangle zone) {
         return navigator.getCurrentTile(car).walls.stream().filter(zone::hasCollision);
+    }
+
+    private Stream<Column> getNeighbourColumns(Car car, Rectangle zone) {
+        return navigator.getCurrentTile(car).getColumns().stream().filter(e -> zone.getLines().stream().anyMatch(e::crosses));
     }
 }

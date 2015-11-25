@@ -52,6 +52,16 @@ public class RectangleTest {
         Assert.assertTrue(self.hasCollision(obstacle));
     }
 
+    @Test
+    public void testHasFrontalCollision() {
+        Rectangle self = new Rectangle(new Point(1175.806 + 35, 7500.498 + 35), 210, 70, 2.072193556);
+        Rectangle obstacle = new Rectangle(new Point(1005.764, 7606.7279), 210, 140, -2.63617017);
+
+        print(self, obstacle);
+
+        Assert.assertTrue(self.hasCollision(obstacle));
+    }
+
     private static void print(Rectangle self, Rectangle other) {
         System.out.println(self);
         System.out.println(other);

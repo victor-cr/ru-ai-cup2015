@@ -2,3 +2,7 @@ build/
 .gradle/
 local-runner/
 repeater/
+
+*.iml
+*.ipr
+*.iws

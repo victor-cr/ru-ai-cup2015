@@ -12,17 +12,17 @@ import org.junit.Test;
  */
 public class MathUtilTest {
     @Test
-    public void testOrientedArea_Right() {
+    public void testOrientedArea_Left() {
         double s = MathUtil.orientedArea(new Point(0, 0), new Point(0, 1), new Point(1, 1));
 
-        Assert.assertEquals(1.0D, StrictMath.signum(s), 0.0D);
+        Assert.assertEquals(-1.0D, StrictMath.signum(s), 0.0D);
     }
 
     @Test
-    public void testOrientedArea_Left() {
+    public void testOrientedArea_Right() {
         double s = MathUtil.orientedArea(new Point(0, 1), new Point(0, 0), new Point(1, 1));
 
-        Assert.assertEquals(-1.0D, StrictMath.signum(s), 0.0D);
+        Assert.assertEquals(1.0D, StrictMath.signum(s), 0.0D);
     }
 
     @Test
