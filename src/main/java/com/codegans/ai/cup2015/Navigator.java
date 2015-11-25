@@ -247,7 +247,7 @@ public class Navigator {
             int y = startY = finishY;
             int k = 1;
 
-            priorityDirection = progress[x][y].orElse(priorityDirection);
+            priorityDirection = progress[x][y] != null ? progress[x][y].orElse(priorityDirection) : priorityDirection;
 
             for (Optional<Direction> direction = progress[x][y]; direction != null && direction.isPresent(); direction = progress[x][y]) {
                 route.add(i, new Tile(x, y, (j + k) % waypoints.length, MathUtil.fromTileType(field[x][y])));
