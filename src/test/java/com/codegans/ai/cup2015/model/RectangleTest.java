@@ -59,7 +59,7 @@ public class RectangleTest {
 
         print(self, obstacle);
 
-        Assert.assertTrue(self.hasCollision(obstacle));
+        Assert.assertFalse(self.hasCollision(obstacle));
     }
 
     private static void print(Rectangle self, Rectangle other) {
