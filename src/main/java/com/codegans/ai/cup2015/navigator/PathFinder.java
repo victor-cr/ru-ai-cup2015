@@ -3,12 +3,14 @@ package com.codegans.ai.cup2015.navigator;
 import com.codegans.ai.cup2015.MathUtil;
 import com.codegans.ai.cup2015.log.Logger;
 import com.codegans.ai.cup2015.log.LoggerFactory;
-import model.Car;
+import com.codegans.ai.cup2015.model.Tile;
 import model.Direction;
 import model.TileType;
 import model.World;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -25,36 +27,30 @@ public class PathFinder {
     private final Logger log = LoggerFactory.getLogger();
     private final TileType[][] field;
     private final int[][] waypoints;
-    private final int[][][][] steps;
+    private final int[][][] steps;
     private final Direction startingDirection;
     private final int levels;
     private final int width;
     private final int height;
-    private final int directions;
 
     public PathFinder(World world) {
         field = world.getTilesXY();
         waypoints = world.getWaypoints();
         width = world.getWidth();
         height = world.getHeight();
-        directions = Direction.values().length;
         startingDirection = world.getStartingDirection();
 
         levels = waypoints.length;
 
-        steps = new int[levels][width][height][directions];
+        steps = new int[levels][width][height];
 
-        for (int[][][] i : steps) {
-            for (int[][] j : i) {
-                for (int[] k : j) {
-                    Arrays.fill(k, Integer.MAX_VALUE);
-                }
+        for (int[][] i : steps) {
+            for (int[] j : i) {
+                Arrays.fill(j, Integer.MAX_VALUE);
             }
         }
-    }
 
-    public void build() {
-        Direction direction = startingDirection;
+        int score = 0;
 
         for (int i = 0; i < waypoints.length; i++) {
             int level = (i + 1) % waypoints.length;
@@ -64,51 +60,55 @@ public class PathFinder {
             int endX = waypoints[level][0];
             int endY = waypoints[level][1];
 
-            Arrays.fill(steps[level][startX][startY], 0);
+            traverse(steps[level], endX, endY, score);
 
-            for (Direction in : Direction.values()) {
-                traverse(steps[level], startX, startY, 0, in);
+            score = steps[level][startX][startY];
+
+            if (score == Integer.MAX_VALUE) {
+                throw new IllegalStateException("Unreachable destination: #" + level + "(" + startX + ";" + startY + ")");
+            }
+        }
+    }
+
+    public Collection<Tile> find(int x, int y, int level, Evaluator evaluator) {
+        int[][] layout = steps[level];
+        Collection<Tile> path = new ArrayList<>();
+
+        int score = layout[x][y];
+
+        for (int i = score; i != 0; i++) {
+            for (Direction direction : Direction.values()) {
+                int dx = MathUtil.dx(direction);
+                int dy = MathUtil.dy(direction);
+
+                int value = layout[x + dx][y + dy];
+
+                if (i == value) {
+                    path.add(new Tile(level, x + dx, y + dy));
+                    break;
+                }
             }
         }
 
-        return steps;
+        return path;
     }
 
-    public int nextPoint(Car car) {
-        int targetIndex = car.getNextWaypointIndex();
+    private void traverse(int[][] layer, int x, int y, int score) {
+        if (layer[x][y] < score) {
+            return;
+        }
 
+        layer[x][y] = score;
 
-    }
-
-    private void traverse(int[][][] layer, int x, int y, int score, Direction out) {
         Set<Direction> directions = MathUtil.fromTileType(field[x][y]);
 
         if (directions != null && !directions.isEmpty()) {
             for (Direction in : directions) {
-                Direction localIn = MathUtil.opposite(in);
+                int dx = MathUtil.dx(in);
+                int dy = MathUtil.dy(in);
 
-                int i = localIn.ordinal();
-                int dx = x + MathUtil.dx(in);
-                int dy = y + MathUtil.dy(in);
-                int ds = score + rate(localIn, out);
-
-                if (layer[dx][dy][i] > ds) {
-                    layer[dx][dy][i] = ds;
-
-                    traverse(layer, dx, dy, ds, localIn);
-                }
+                traverse(layer, x + dx, y + dy, score + 1);
             }
-        }
-    }
-
-    private static int rate(Direction in, Direction out) {
-        if (in == out
-                ) {
-            return TURN0_COST;
-        } else if (in == MathUtil.opposite(out)) {
-            return TURN180_COST;
-        } else {
-            return TURN90_COST;
         }
     }
 }

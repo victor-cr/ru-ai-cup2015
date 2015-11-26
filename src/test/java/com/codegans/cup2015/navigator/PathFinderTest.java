@@ -31,19 +31,9 @@ public class PathFinderTest {
 
         PathFinder builder = new PathFinder(world);
 
-        int[][][][] expectedResult = new int[][][][]{
-                {
-                        {{Integer.MAX_VALUE, 3, Integer.MAX_VALUE, 3}, {Integer.MAX_VALUE, 1, 1, Integer.MAX_VALUE}},
-                        {{1, Integer.MAX_VALUE, Integer.MAX_VALUE, 1}, {0, 0, 0, 0}}
-                },
-                {
-                        {{0, 0, 0, 0}, {1, Integer.MAX_VALUE, Integer.MAX_VALUE, 1}},
-                        {{Integer.MAX_VALUE, 1, 1, Integer.MAX_VALUE}, {3, 3, Integer.MAX_VALUE, Integer.MAX_VALUE}}
-                }
-        };
+        int expectedResult = 4;
+        int actualResult = builder.build();
 
-        int[][][][] actualResult = builder.build();
-
-        Assert.assertArrayEquals(expectedResult, actualResult);
+        Assert.assertEquals(expectedResult, actualResult);
     }
 }
