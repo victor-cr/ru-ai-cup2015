@@ -8,27 +8,19 @@ import com.codegans.ai.cup2015.model.Wall;
 import model.Car;
 import model.Direction;
 import model.Game;
-import model.TileType;
 import model.Unit;
 import model.World;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
-import java.util.Queue;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.lang.StrictMath.PI;
-import static java.lang.StrictMath.cos;
-import static java.lang.StrictMath.sin;
+import static java.lang.StrictMath.*;
 
 /**
  * JavaDoc here
@@ -184,104 +176,104 @@ public class Navigator {
 
 
     private synchronized void fetch(World world) {
-        if (completed) {
-            return;
-        }
-
-        LOG.layout(world);
-
-        TileType[][] field = world.getTilesXY();
-        int[][] waypoints = world.getWaypoints();
-        List<Tile> route = new LinkedList<>();
-
-        int i = 0;
-        int startX = waypoints[0][0];
-        int startY = waypoints[0][1];
-        boolean incomplete = false;
-        Step start = null;
-
-        for (int j = 0; j <= waypoints.length; j++) {
-            int[] waypoint = waypoints[j % waypoints.length];
-
-            int finishX = waypoint[0];
-            int finishY = waypoint[1];
-            Queue<Step> queue = new LinkedList<>();
-            Step[][] progress = new Step[width][height];
-
-            LOG.printf("Calculate path: (%d;%d)->(%d;%d)%n", startX, startY, finishX, finishY);
-
-            BitSet column = progress.get(startX);
-
-            if (column == null) {
-                progress.set(startX, column = new BitSet(height));
-            }
-
-            column.set(startY);
-            queue.offer(new Step(start, startX, startY, direction, score));
-
-            while (!queue.isEmpty()) {
-                Step step = queue.poll();
-
-                Set<Direction> directions = MathUtil.fromTileType(field[step.x][step.y]);
-
-                if (directions != null) {
-                    for (Direction direction : directions) {
-                        int x = step.x + MathUtil.dx(direction);
-                        int y = step.y + MathUtil.dy(direction);
-
-                        if (progress[x][y] == null) {
-                            progress[x][y] = Optional.of(direction);
-                            queue.offer(new Step(step, x, y, direction, score));
-                        }
-                    }
-                } else {
-                    incomplete = true;
-                }
-            }
-
-            int x = startX = finishX;
-            int y = startY = finishY;
-            int k = 1;
-
-            priorityDirection = progress[x][y] != null ? progress[x][y].orElse(priorityDirection) : priorityDirection;
-
-            for (Optional<Direction> direction = progress[x][y]; direction != null && direction.isPresent(); direction = progress[x][y]) {
-                route.add(i, new Tile(x, y, (j + k) % waypoints.length, MathUtil.fromTileType(field[x][y])));
-
-                x -= MathUtil.dx(direction.get());
-                y -= MathUtil.dy(direction.get());
-                k = 0;
-            }
-
-            LOG.printf("Sub-path: %s%n", route.subList(i, route.size()));
-
-            i = route.size();
-        }
-
-        String message = Arrays.asList(waypoints).stream()
-                .map(e -> "(" + e[0] + ";" + e[1] + ")")
-                .collect(Collectors.joining());
-
-        LOG.printf("%s%n", message);
-
-        Tile prev = route.get(route.size() - 1);
-
-        LOG.printf("Raw path: %s%n", route);
-
-        for (Tile tile : route) {
-            prev.out = MathUtil.shift(tile.x - prev.x, tile.y - prev.y);
-            tile.in = MathUtil.opposite(prev.out);
-            tile.prev = prev;
-            prev = prev.next = tile;
-        }
-
-        startTile = prev;
-
-        if (!incomplete) {
-            completed = true;
-
-            LOG.printf("Calculated path: %s%n", route);
-        }
+//        if (completed) {
+//            return;
+//        }
+//
+//        LOG.layout(world);
+//
+//        TileType[][] field = world.getTilesXY();
+//        int[][] waypoints = world.getWaypoints();
+//        List<Tile> route = new LinkedList<>();
+//
+//        int i = 0;
+//        int startX = waypoints[0][0];
+//        int startY = waypoints[0][1];
+//        boolean incomplete = false;
+//        Step start = null;
+//
+//        for (int j = 0; j <= waypoints.length; j++) {
+//            int[] waypoint = waypoints[j % waypoints.length];
+//
+//            int finishX = waypoint[0];
+//            int finishY = waypoint[1];
+//            Queue<Step> queue = new LinkedList<>();
+//            Step[][] progress = new Step[width][height];
+//
+//            LOG.printf("Calculate path: (%d;%d)->(%d;%d)%n", startX, startY, finishX, finishY);
+//
+//            BitSet column = progress.get(startX);
+//
+//            if (column == null) {
+//                progress.set(startX, column = new BitSet(height));
+//            }
+//
+//            column.set(startY);
+//            queue.offer(new Step(start, startX, startY, direction, score));
+//
+//            while (!queue.isEmpty()) {
+//                Step step = queue.poll();
+//
+//                Set<Direction> directions = MathUtil.fromTileType(field[step.x][step.y]);
+//
+//                if (directions != null) {
+//                    for (Direction direction : directions) {
+//                        int x = step.x + MathUtil.dx(direction);
+//                        int y = step.y + MathUtil.dy(direction);
+//
+//                        if (progress[x][y] == null) {
+//                            progress[x][y] = Optional.of(direction);
+//                            queue.offer(new Step(step, x, y, direction, score));
+//                        }
+//                    }
+//                } else {
+//                    incomplete = true;
+//                }
+//            }
+//
+//            int x = startX = finishX;
+//            int y = startY = finishY;
+//            int k = 1;
+//
+//            priorityDirection = progress[x][y] != null ? progress[x][y].orElse(priorityDirection) : priorityDirection;
+//
+//            for (Optional<Direction> direction = progress[x][y]; direction != null && direction.isPresent(); direction = progress[x][y]) {
+//                route.add(i, new Tile(x, y, (j + k) % waypoints.length, MathUtil.fromTileType(field[x][y])));
+//
+//                x -= MathUtil.dx(direction.get());
+//                y -= MathUtil.dy(direction.get());
+//                k = 0;
+//            }
+//
+//            LOG.printf("Sub-path: %s%n", route.subList(i, route.size()));
+//
+//            i = route.size();
+//        }
+//
+//        String message = Arrays.asList(waypoints).stream()
+//                .map(e -> "(" + e[0] + ";" + e[1] + ")")
+//                .collect(Collectors.joining());
+//
+//        LOG.printf("%s%n", message);
+//
+//        Tile prev = route.get(route.size() - 1);
+//
+//        LOG.printf("Raw path: %s%n", route);
+//
+//        for (Tile tile : route) {
+//            prev.out = MathUtil.shift(tile.x - prev.x, tile.y - prev.y);
+//            tile.in = MathUtil.opposite(prev.out);
+//            tile.prev = prev;
+//            prev = prev.next = tile;
+//        }
+//
+//        startTile = prev;
+//
+//        if (!incomplete) {
+//            completed = true;
+//
+//            LOG.printf("Calculated path: %s%n", route);
+//        }
     }
 
     @SuppressWarnings("unchecked")
