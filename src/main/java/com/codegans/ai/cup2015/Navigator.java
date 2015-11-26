@@ -14,6 +14,7 @@ import model.World;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -25,7 +26,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.lang.StrictMath.*;
+import static java.lang.StrictMath.PI;
+import static java.lang.StrictMath.cos;
+import static java.lang.StrictMath.sin;
 
 /**
  * JavaDoc here
@@ -179,6 +182,7 @@ public class Navigator {
         throw new IllegalStateException("Cannot find a tile in (" + x + ";" + y + ";#" + nextWaypointIndex + ")");
     }
 
+
     private synchronized void fetch(World world) {
         if (completed) {
             return;
@@ -194,48 +198,40 @@ public class Navigator {
         int startX = waypoints[0][0];
         int startY = waypoints[0][1];
         boolean incomplete = false;
-        Direction priorityDirection = world.getStartingDirection();
+        Step start = null;
 
         for (int j = 0; j <= waypoints.length; j++) {
             int[] waypoint = waypoints[j % waypoints.length];
 
             int finishX = waypoint[0];
             int finishY = waypoint[1];
-            Queue<Point> queue = new LinkedList<>();
-            Optional<Direction>[][] progress = createDirectionArray(width, height);
+            Queue<Step> queue = new LinkedList<>();
+            Step[][] progress = new Step[width][height];
 
             LOG.printf("Calculate path: (%d;%d)->(%d;%d)%n", startX, startY, finishX, finishY);
 
-            progress[startX][startY] = Optional.empty();
-            queue.offer(new Point(startX, startY));
+            BitSet column = progress.get(startX);
+
+            if (column == null) {
+                progress.set(startX, column = new BitSet(height));
+            }
+
+            column.set(startY);
+            queue.offer(new Step(start, startX, startY, direction, score));
 
             while (!queue.isEmpty()) {
-                Point point = queue.poll();
+                Step step = queue.poll();
 
-                if (finishX == point.x && finishY == point.y) {
-                    break;
-                }
-
-                Set<Direction> directions = MathUtil.fromTileType(field[point.x][point.y]);
+                Set<Direction> directions = MathUtil.fromTileType(field[step.x][step.y]);
 
                 if (directions != null) {
-                    if (directions.contains(priorityDirection)) {
-                        int x = point.x + MathUtil.dx(priorityDirection);
-                        int y = point.y + MathUtil.dy(priorityDirection);
-
-                        if (progress[x][y] == null) {
-                            progress[x][y] = Optional.of(priorityDirection);
-                            queue.offer(new Point(x, y));
-                        }
-                    }
-
                     for (Direction direction : directions) {
-                        int x = point.x + MathUtil.dx(direction);
-                        int y = point.y + MathUtil.dy(direction);
+                        int x = step.x + MathUtil.dx(direction);
+                        int y = step.y + MathUtil.dy(direction);
 
                         if (progress[x][y] == null) {
                             progress[x][y] = Optional.of(direction);
-                            queue.offer(new Point(x, y));
+                            queue.offer(new Step(step, x, y, direction, score));
                         }
                     }
                 } else {
@@ -338,16 +334,6 @@ public class Navigator {
                 baseX + bX * cos + bY * sin,
                 baseY - bX * sin + bY * cos
         );
-    }
-
-    private static final class Point {
-        private final int x;
-        private final int y;
-
-        public Point(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
     }
 
     private static final class Tile {
