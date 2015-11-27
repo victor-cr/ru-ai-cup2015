@@ -60,7 +60,9 @@ public class PathFinder {
             int endX = waypoints[level][0];
             int endY = waypoints[level][1];
 
-            traverse(steps[level], endX, endY, score);
+            for (Direction in : Direction.values()) {
+                traverse(steps[level], endX, endY, score, in, (a, b, c, d) -> 1);
+            }
 
             score = steps[level][startX][startY];
 
@@ -71,21 +73,28 @@ public class PathFinder {
     }
 
     public Collection<Tile> find(int x, int y, int level, Evaluator evaluator) {
-        int[][] layout = steps[level];
+        int[][] layer = new int[width][height];
         Collection<Tile> path = new ArrayList<>();
 
-        int score = layout[x][y];
+        int targetX = waypoints[level][0];
+        int targetY = waypoints[level][1];
 
-        for (int i = score; i != 0; i++) {
-            for (Direction direction : Direction.values()) {
-                int dx = MathUtil.dx(direction);
-                int dy = MathUtil.dy(direction);
+        for (Direction in : Direction.values()) {
+            traverse(layer, targetX, targetY, 0, in, (xx, yy, i, o) -> evaluator.apply(xx, yy, MathUtil.opposite(i), MathUtil.opposite(o)));
+        }
 
-                int value = layout[x + dx][y + dy];
+        int score = layer[targetX][targetY];
 
-                if (i == value) {
-                    path.add(new Tile(level, x + dx, y + dy));
-                    break;
+        if (score == Integer.MAX_VALUE) {
+            throw new IllegalStateException("Unreachable destination: #" + level + "(" + targetX + ";" + targetY + ") from (" + x + ";" + y + ")");
+        }
+
+        for (int xx = x, yy = y; xx != targetX && yy != targetY; ) {
+            Set<Direction> directions = MathUtil.fromTileType(field[x][y]);
+
+            if (directions != null) {
+                for (Direction direction : directions) {
+
                 }
             }
         }
@@ -93,7 +102,7 @@ public class PathFinder {
         return path;
     }
 
-    private void traverse(int[][] layer, int x, int y, int score) {
+    private void traverse(int[][] layer, int x, int y, int score, Direction in, Evaluator evaluator) {
         if (layer[x][y] < score) {
             return;
         }
@@ -103,11 +112,13 @@ public class PathFinder {
         Set<Direction> directions = MathUtil.fromTileType(field[x][y]);
 
         if (directions != null && !directions.isEmpty()) {
-            for (Direction in : directions) {
-                int dx = MathUtil.dx(in);
-                int dy = MathUtil.dy(in);
+            for (Direction out : directions) {
+                int xx = x + MathUtil.dx(out);
+                int yy = y + MathUtil.dy(out);
 
-                traverse(layer, x + dx, y + dy, score + 1);
+                int newScore = score + evaluator.apply(xx, yy, in, out);
+
+                traverse(layer, xx, yy, newScore, out, evaluator);
             }
         }
     }

@@ -32,7 +32,7 @@ public class PathFinderTest {
         PathFinder builder = new PathFinder(world);
 
         int expectedResult = 4;
-        int actualResult = builder.build();
+        int actualResult = builder.find(1, 0, 1, (a, b, c) -> 1);
 
         Assert.assertEquals(expectedResult, actualResult);
     }
