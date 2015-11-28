@@ -8,9 +8,9 @@ import model.Direction;
 import model.TileType;
 import model.World;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.Set;
 
 import static java.lang.StrictMath.PI;
@@ -30,7 +30,6 @@ public class PathFinder {
     private final Logger log = LoggerFactory.getLogger();
     private final TileType[][] field;
     private final int[][] waypoints;
-    private final int[][][] steps;
     private final Direction startingDirection;
     private final int levels;
     private final int width;
@@ -44,76 +43,45 @@ public class PathFinder {
         startingDirection = world.getStartingDirection();
 
         levels = waypoints.length;
-
-        steps = new int[levels][width][height];
-
-        for (int[][] i : steps) {
-            for (int[] j : i) {
-                Arrays.fill(j, Integer.MAX_VALUE);
-            }
-        }
-
-        int score = 0;
-
-        for (int i = 0; i < waypoints.length; i++) {
-            int level = (i + 1) % waypoints.length;
-
-            int startX = waypoints[i][0];
-            int startY = waypoints[i][1];
-            int endX = waypoints[level][0];
-            int endY = waypoints[level][1];
-
-            for (Direction in : Direction.values()) {
-                traverse(steps[level], endX, endY, score, in, (a, b, c, d) -> 1);
-            }
-
-            score = steps[level][startX][startY];
-
-            if (score == Integer.MAX_VALUE) {
-                throw new IllegalStateException("Unreachable destination: #" + level + "(" + startX + ";" + startY + ")");
-            }
-        }
     }
 
     public Collection<Tile> find(int x, int y, int level, double angle, Evaluator evaluator) {
-        int[][] layer = new int[width][height];
-        Collection<Tile> path = new ArrayList<>();
-
         int targetX = waypoints[level][0];
         int targetY = waypoints[level][1];
+        Direction origin = rate(angle);
+        Node[][] layer = new Node[width][height];
+
+        layer[x][y] = new Node(null, 0);
 
         for (Direction in : Direction.values()) {
-            int score = rate(angle, in);
+            int score = evaluator.apply(x, y, origin, in);
 
-            traverse(layer, targetX, targetY, score, in, (xx, yy, i, o) -> evaluator.apply(xx, yy, MathUtil.opposite(i), MathUtil.opposite(o)));
+            traverse(layer, targetX, targetY, score, in, evaluator);
         }
 
-        int score = layer[targetX][targetY];
+        Node last = layer[targetX][targetY];
 
-        if (score == Integer.MAX_VALUE) {
+        if (last == null) {
             throw new IllegalStateException("Unreachable destination: #" + level + "(" + targetX + ";" + targetY + ") from (" + x + ";" + y + ")");
         }
 
-        for (int xx = x, yy = y; xx != targetX && yy != targetY; ) {
-            Set<Direction> directions = MathUtil.fromTileType(field[x][y]);
+        Deque<Tile> result = new LinkedList<>();
 
-            if (directions != null) {
-                for (Direction direction : directions) {
+        while (targetX != x || targetY != y) {
+            Node node = layer[targetX][targetY];
 
-                }
-            }
+            result.addFirst(new Tile(level, targetX, targetY));
+
+            Direction out = MathUtil.opposite(node.in);
+
+            targetX += MathUtil.dx(out);
+            targetY += MathUtil.dy(out);
         }
 
-        return path;
+        return result;
     }
 
-    private void traverse(int[][] layer, int x, int y, int score, Direction in, Evaluator evaluator) {
-        if (layer[x][y] < score) {
-            return;
-        }
-
-        layer[x][y] = score;
-
+    private void traverse(Node[][] layer, int x, int y, int score, Direction in, Evaluator evaluator) {
         Set<Direction> directions = MathUtil.fromTileType(field[x][y]);
 
         if (directions != null && !directions.isEmpty()) {
@@ -123,27 +91,41 @@ public class PathFinder {
 
                 int newScore = score + evaluator.apply(xx, yy, in, out);
 
-                traverse(layer, xx, yy, newScore, out, evaluator);
+                if (layer[xx][yy] == null || layer[x][y].score > newScore) {
+                    layer[xx][yy] = new Node(in, score);
+
+                    traverse(layer, xx, yy, newScore, out, evaluator);
+                }
             }
         }
     }
 
-    private static Direction rate(double angle, Direction direction) {
-        int dx = (MathUtil.dx(direction) - 1) / 2;
-        int dy = MathUtil.dy(direction);
+    private static Direction rate(double angle) {
+        double min = Double.MAX_VALUE;
+        Direction result = null;
 
-        double deltaAngle = abs(angle - PI * dx + PI / 2 * dy);
+        for (Direction direction : Direction.values()) {
+            int dx = (MathUtil.dx(direction) - 1) / 2;
+            int dy = MathUtil.dy(direction);
 
-        while (deltaAngle > PI) {
-            deltaAngle = abs(deltaAngle - 2 * PI);
+            double deltaAngle = abs(angle - PI * dx + PI / 2 * dy);
+
+            if (deltaAngle < min) {
+                min = deltaAngle;
+                result = direction;
+            }
         }
 
-        if (deltaAngle < PI / 4) {
-            return direction;
-        } else if (deltaAngle < PI * 3 / 4) {
-            return TURN90_COST;
-        } else {
-            return MathUtil.opposite(direction);
+        return result;
+    }
+
+    private static class Node {
+        private final Direction in;
+        private final int score;
+
+        public Node(Direction in, int score) {
+            this.in = in;
+            this.score = score;
         }
     }
 }

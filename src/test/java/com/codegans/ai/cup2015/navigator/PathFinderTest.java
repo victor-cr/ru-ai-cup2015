@@ -1,7 +1,6 @@
-package com.codegans.cup2015.navigator;
+package com.codegans.ai.cup2015.navigator;
 
 import com.codegans.ai.cup2015.model.Tile;
-import com.codegans.ai.cup2015.navigator.PathFinder;
 import model.Bonus;
 import model.Car;
 import model.Direction;
@@ -15,6 +14,8 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
+
+import static java.lang.StrictMath.PI;
 
 /**
  * JavaDoc here
@@ -36,7 +37,7 @@ public class PathFinderTest {
         PathFinder builder = new PathFinder(world);
 
         Collection<Tile> expectedResult = new ArrayList<>();
-        Collection<Tile> actualResult = builder.find(1, 0, 1, (a, b, c, d) -> 1);
+        Collection<Tile> actualResult = builder.find(1, 0, 1, PI / 2 - 0.1D, (a, b, c, d) -> 1);
 
         Assert.assertEquals(expectedResult, actualResult);
     }

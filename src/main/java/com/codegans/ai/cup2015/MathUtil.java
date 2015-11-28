@@ -99,25 +99,24 @@ public class MathUtil {
     }
 
     public static Direction opposite(Direction direction) {
-        return DIRECTIONS.stream()
-                .filter(e -> e.direction == direction)
-                .map(e -> DIRECTIONS.get((DIRECTIONS.size() + e.index + 2) % DIRECTIONS.size()))
-                .map(e -> e.direction)
-                .findFirst().get();
+        int size = DIRECTIONS.size();
+        int i = DIRECTIONS.stream().filter(e -> e.direction == direction).mapToInt(e -> e.index).findFirst().getAsInt();
+
+        return DIRECTIONS.get((i + 2) % size).direction;
     }
 
     public static Direction turnLeft(Direction direction) {
         int size = DIRECTIONS.size();
         int i = DIRECTIONS.stream().filter(e -> e.direction == direction).mapToInt(e -> e.index).findFirst().getAsInt();
 
+        return DIRECTIONS.get((size + i - 1) % size).direction;
+    }
 
-        DIRECTIONS.get(size + i - 1)
+    public static Direction turnRight(Direction direction) {
+        int size = DIRECTIONS.size();
+        int i = DIRECTIONS.stream().filter(e -> e.direction == direction).mapToInt(e -> e.index).findFirst().getAsInt();
 
-        return DIRECTIONS.stream()
-                .filter(e -> e.direction == direction)
-                .map(e -> DIRECTIONS.get((size + e.index + 2) % size))
-                .map(e -> e.direction)
-                .findFirst().get();
+        return DIRECTIONS.get((i + 1) % size).direction;
     }
 
     public static Direction relative(Direction in, Direction out) {
