@@ -45,6 +45,8 @@ public class MathUtil {
 //        # (x1-x3)(y2-y3)+(x3-x2)(y1-y3)
 
 //        return (first.x - third.x) * (second.y - third.y) - (third.x - second.x) * (first.y - third.y);
+        //
+//        return (x1 - x3) * (y2 - y3) - (y1 - y3) * (x2 - x3);
         return (x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1);
 //        return (first.x - third.x) * (second.y - third.y) - (third.x - second.x) * (first.y - third.y);
     }
@@ -54,7 +56,7 @@ public class MathUtil {
     }
 
     public static Point rotate(Point point, double cos, double sin) {
-        return point.withX(0 + point.x * cos + point.y * sin).withY(0 - point.x * sin + point.y * cos);
+        return point.withX(0 + point.x * cos - point.y * sin).withY(0 + point.x * sin + point.y * cos);
     }
 
     public static Line rotate(Line line, double cos, double sin) {

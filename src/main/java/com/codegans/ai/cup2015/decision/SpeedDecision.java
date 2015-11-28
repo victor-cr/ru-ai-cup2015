@@ -25,7 +25,7 @@ import static java.lang.StrictMath.hypot;
  */
 public class SpeedDecision implements Decision {
     private static final int THRESHOLD = 2;
-    private static final double OPTIMAL_SPEED = 12.6D;
+    private static final double OPTIMAL_SPEED = 16.6D;
     private static final double MINIMUM_ACCELERATION = -0.25D;
 
     private final Logger log = LoggerFactory.getLogger();
@@ -50,7 +50,7 @@ public class SpeedDecision implements Decision {
             log.printf("Decelerating: %.3f (-%f)%n", power, delta);
         }
 
-        return Collections.singleton(new SpeedAction(Priority.HIGH, power));
+        return Collections.singleton(new SpeedAction(Priority.NORMAL, power));
 
     }
 }

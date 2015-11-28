@@ -29,7 +29,7 @@ public class Rectangle {
     }
 
     public Rectangle(Point center, double width, double height, double angle) {
-        this(center, width, height, angle, StrictMath.cos(-angle), StrictMath.sin(-angle));
+        this(center, width, height, angle, StrictMath.cos(angle), StrictMath.sin(angle));
     }
 
     private Rectangle(Point center, double width, double height, double angle, double cos, double sin) {
@@ -42,27 +42,27 @@ public class Rectangle {
     }
 
     public Rectangle topHalf() {
-        return new Rectangle(MathUtil.rotate(new Point(height / 4, 0), cos, sin).add(center), width, height / 2, angle, cos, sin);
+        return new Rectangle(MathUtil.rotate(new Point(height / 4, 0), cos, sin).plus(center), width, height / 2, angle, cos, sin);
     }
 
     public Rectangle lowHalf() {
-        return new Rectangle(MathUtil.rotate(new Point(-height / 4, 0), cos, sin).add(center), width, height / 2, angle, cos, sin);
+        return new Rectangle(MathUtil.rotate(new Point(-height / 4, 0), cos, sin).plus(center), width, height / 2, angle, cos, sin);
     }
 
     public Point getTopLeft() {
-        return MathUtil.rotate(new Point(height / 2, -width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(height / 2, -width / 2), cos, sin).plus(center);
     }
 
     public Point getTopRight() {
-        return MathUtil.rotate(new Point(height / 2, width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(height / 2, width / 2), cos, sin).plus(center);
     }
 
     public Point getBottomRight() {
-        return MathUtil.rotate(new Point(-height / 2, width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(-height / 2, width / 2), cos, sin).plus(center);
     }
 
     public Point getBottomLeft() {
-        return MathUtil.rotate(new Point(-height / 2, -width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(-height / 2, -width / 2), cos, sin).plus(center);
     }
 
     public Collection<Point> getPoints() {
@@ -77,16 +77,11 @@ public class Rectangle {
         return new Rectangle(center, width, height + dWidth, angle, cos, sin);
     }
 
-    public boolean isInner(Point point) {
-        return within(getPoints(), point);
-    }
-
     public boolean hasCollision(Rectangle rectangle) {
         Collection<Point> thisPoints = getPoints();
         Collection<Point> thatPoints = rectangle.getPoints();
 
-        return thisPoints.stream().anyMatch(e -> within(thatPoints, e))
-                || thatPoints.stream().anyMatch(e -> within(thisPoints, e));
+        return thisPoints.stream().anyMatch(rectangle::belongs) || thatPoints.stream().anyMatch(this::belongs);
     }
 
     public boolean hasCollision(Line line) {
@@ -99,10 +94,6 @@ public class Rectangle {
 
 
         return count != 0 && count != points.size();
-    }
-
-    public boolean isOuter(Point point) {
-        return !isInner(point);
     }
 
     public Collection<Line> getLines() {
@@ -119,25 +110,20 @@ public class Rectangle {
         );
     }
 
-    private static boolean within(Collection<Point> area, Point point) {
-        Point first = null;
-        Point prev = null;
+    public boolean belongs(Point point) {
+        Point prev = getBottomLeft();
 
-        for (Point current : area) {
-            if (first == null) {
-                first = current;
-            } else {
-                double orientedArea = MathUtil.orientedArea(prev, current, point);
+        for (Point current : getPoints()) {
+            double orientedArea = MathUtil.orientedArea(prev, current, point);
 
-                if (orientedArea < 0) {
-                    return false;
-                }
+            if (orientedArea < 0) {
+                return false;
             }
 
             prev = current;
         }
 
-        return first != null && prev != null && MathUtil.orientedArea(prev, first, point) >= 0;
+        return true;
     }
 
     @Override

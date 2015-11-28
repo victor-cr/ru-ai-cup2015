@@ -87,9 +87,15 @@ public class UnstuckDecision implements Decision {
                 fixed = false;
             }
 
+            double speed = hypot(self.getSpeedX(), self.getSpeedY());
+
             log.printf("Wait for main route wheel adjustment: %d idle ticks%n", ticks);
 
-            return Collections.singleton(new SpeedAction(Priority.TOP, 0));
+            if (speed > 1.0D && self.getEnginePower() < 0) {
+                return Arrays.asList(new SpeedAction(Priority.TOP, 0), new NegateMoveAction(Priority.NONE));
+            } else {
+                return Collections.singleton(new SpeedAction(Priority.TOP, 0));
+            }
         }
 
         return Collections.emptySet();
