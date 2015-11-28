@@ -29,7 +29,7 @@ public class Rectangle {
     }
 
     public Rectangle(Point center, double width, double height, double angle) {
-        this(center, width, height, angle, StrictMath.cos(-angle), StrictMath.sin(-angle));
+        this(center, width, height, angle, StrictMath.cos(angle), StrictMath.sin(angle));
     }
 
     private Rectangle(Point center, double width, double height, double angle, double cos, double sin) {
@@ -42,27 +42,27 @@ public class Rectangle {
     }
 
     public Rectangle topHalf() {
-        return new Rectangle(MathUtil.rotate(new Point(height / 4, 0), cos, sin).add(center), width, height / 2, angle, cos, sin);
+        return new Rectangle(MathUtil.rotate(new Point(height / 4, 0), cos, sin).plus(center), width, height / 2, angle, cos, sin);
     }
 
     public Rectangle lowHalf() {
-        return new Rectangle(MathUtil.rotate(new Point(-height / 4, 0), cos, sin).add(center), width, height / 2, angle, cos, sin);
+        return new Rectangle(MathUtil.rotate(new Point(-height / 4, 0), cos, sin).plus(center), width, height / 2, angle, cos, sin);
     }
 
     public Point getTopLeft() {
-        return MathUtil.rotate(new Point(height / 2, -width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(height / 2, -width / 2), cos, sin).plus(center);
     }
 
     public Point getTopRight() {
-        return MathUtil.rotate(new Point(height / 2, width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(height / 2, width / 2), cos, sin).plus(center);
     }
 
     public Point getBottomRight() {
-        return MathUtil.rotate(new Point(-height / 2, width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(-height / 2, width / 2), cos, sin).plus(center);
     }
 
     public Point getBottomLeft() {
-        return MathUtil.rotate(new Point(-height / 2, -width / 2), cos, sin).add(center);
+        return MathUtil.rotate(new Point(-height / 2, -width / 2), cos, sin).plus(center);
     }
 
     public Collection<Point> getPoints() {

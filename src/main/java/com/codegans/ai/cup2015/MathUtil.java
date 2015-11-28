@@ -56,7 +56,7 @@ public class MathUtil {
     }
 
     public static Point rotate(Point point, double cos, double sin) {
-        return point.withX(0 + point.x * cos + point.y * sin).withY(0 - point.x * sin + point.y * cos);
+        return point.withX(0 + point.x * cos - point.y * sin).withY(0 + point.x * sin + point.y * cos);
     }
 
     public static Line rotate(Line line, double cos, double sin) {

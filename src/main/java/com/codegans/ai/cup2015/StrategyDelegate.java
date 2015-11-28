@@ -7,9 +7,11 @@ import com.codegans.ai.cup2015.decision.NitroDecision;
 import com.codegans.ai.cup2015.decision.SafeBrakeDecision;
 import com.codegans.ai.cup2015.decision.ShootDecision;
 import com.codegans.ai.cup2015.decision.SpeedDecision;
+import com.codegans.ai.cup2015.decision.SpillOilDecision;
 import com.codegans.ai.cup2015.decision.TurnBrakeDecision;
 import com.codegans.ai.cup2015.decision.TurnDecision;
 import com.codegans.ai.cup2015.decision.UnstuckDecision;
+import com.codegans.ai.cup2015.intrinsic.BonusHuntingDecision;
 import com.codegans.ai.cup2015.intrinsic.DiagonalMoveDecision;
 import com.codegans.ai.cup2015.intrinsic.TooManyIdiotsDecision;
 import com.codegans.ai.cup2015.log.Logger;
@@ -39,10 +41,12 @@ public class StrategyDelegate {
             new UnstuckDecision(),
             new NitroDecision(),
             new ShootDecision(),
+            new SpillOilDecision(),
             new SafeBrakeDecision(),
             new TurnBrakeDecision(),
 
 
+            new BonusHuntingDecision(),
             new TooManyIdiotsDecision(),
             new DiagonalMoveDecision()
     );

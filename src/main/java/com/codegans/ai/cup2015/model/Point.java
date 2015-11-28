@@ -1,5 +1,7 @@
 package com.codegans.ai.cup2015.model;
 
+import model.Unit;
+
 import static java.lang.StrictMath.max;
 import static java.lang.StrictMath.min;
 
@@ -12,6 +14,11 @@ import static java.lang.StrictMath.min;
 public final class Point {
     public final double x;
     public final double y;
+
+    public Point(Unit unit) {
+        this.x = unit.getX();
+        this.y = unit.getY();
+    }
 
     public Point(double x, double y) {
         this.x = x;
@@ -26,22 +33,44 @@ public final class Point {
         return new Point(x, y);
     }
 
-    public Point addX(double dx) {
+    public Point plusX(double dx) {
         return new Point(x + dx, y);
     }
 
-    public Point addY(double dy) {
+    public Point plusY(double dy) {
         return new Point(x, y + dy);
     }
 
-    public Point add(Point base) {
+    public Point minusX(double dx) {
+        return new Point(x - dx, y);
+    }
+
+    public Point minusY(double dy) {
+        return new Point(x, y - dy);
+    }
+
+    public Point plus(Point base) {
         return new Point(x + base.x, y + base.y);
+    }
+
+    public Point minus(Point base) {
+        return new Point(x - base.x, y - base.y);
     }
 
     public Point shiftTo(Point other, double gravity) {
         double val = (1 + max(min(gravity, 1.0D), -1.0D)) / 2;
 
-        return addX((other.x - x) * val).addY((other.y - y) * val);
+        return plusX((other.x - x) * val).plusY((other.y - y) * val);
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (x * y);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj != null && obj instanceof Point && x - ((Point) obj).x < 0.001D && y - ((Point) obj).y < 0.001D;
     }
 
     @Override
