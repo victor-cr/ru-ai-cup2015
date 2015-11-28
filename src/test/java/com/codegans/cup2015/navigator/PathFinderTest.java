@@ -1,5 +1,6 @@
 package com.codegans.cup2015.navigator;
 
+import com.codegans.ai.cup2015.model.Tile;
 import com.codegans.ai.cup2015.navigator.PathFinder;
 import model.Bonus;
 import model.Car;
@@ -11,6 +12,9 @@ import model.TileType;
 import model.World;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * JavaDoc here
@@ -31,8 +35,8 @@ public class PathFinderTest {
 
         PathFinder builder = new PathFinder(world);
 
-        int expectedResult = 4;
-        int actualResult = builder.find(1, 0, 1, (a, b, c) -> 1);
+        Collection<Tile> expectedResult = new ArrayList<>();
+        Collection<Tile> actualResult = builder.find(1, 0, 1, (a, b, c, d) -> 1);
 
         Assert.assertEquals(expectedResult, actualResult);
     }

@@ -13,6 +13,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
+import static java.lang.StrictMath.PI;
+import static java.lang.StrictMath.abs;
+
 /**
  * JavaDoc here
  *
@@ -72,7 +75,7 @@ public class PathFinder {
         }
     }
 
-    public Collection<Tile> find(int x, int y, int level, Evaluator evaluator) {
+    public Collection<Tile> find(int x, int y, int level, double angle, Evaluator evaluator) {
         int[][] layer = new int[width][height];
         Collection<Tile> path = new ArrayList<>();
 
@@ -80,7 +83,9 @@ public class PathFinder {
         int targetY = waypoints[level][1];
 
         for (Direction in : Direction.values()) {
-            traverse(layer, targetX, targetY, 0, in, (xx, yy, i, o) -> evaluator.apply(xx, yy, MathUtil.opposite(i), MathUtil.opposite(o)));
+            int score = rate(angle, in);
+
+            traverse(layer, targetX, targetY, score, in, (xx, yy, i, o) -> evaluator.apply(xx, yy, MathUtil.opposite(i), MathUtil.opposite(o)));
         }
 
         int score = layer[targetX][targetY];
@@ -120,6 +125,25 @@ public class PathFinder {
 
                 traverse(layer, xx, yy, newScore, out, evaluator);
             }
+        }
+    }
+
+    private static Direction rate(double angle, Direction direction) {
+        int dx = (MathUtil.dx(direction) - 1) / 2;
+        int dy = MathUtil.dy(direction);
+
+        double deltaAngle = abs(angle - PI * dx + PI / 2 * dy);
+
+        while (deltaAngle > PI) {
+            deltaAngle = abs(deltaAngle - 2 * PI);
+        }
+
+        if (deltaAngle < PI / 4) {
+            return direction;
+        } else if (deltaAngle < PI * 3 / 4) {
+            return TURN90_COST;
+        } else {
+            return MathUtil.opposite(direction);
         }
     }
 }

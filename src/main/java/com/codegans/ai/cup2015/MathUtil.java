@@ -106,6 +106,20 @@ public class MathUtil {
                 .findFirst().get();
     }
 
+    public static Direction turnLeft(Direction direction) {
+        int size = DIRECTIONS.size();
+        int i = DIRECTIONS.stream().filter(e -> e.direction == direction).mapToInt(e -> e.index).findFirst().getAsInt();
+
+
+        DIRECTIONS.get(size + i - 1)
+
+        return DIRECTIONS.stream()
+                .filter(e -> e.direction == direction)
+                .map(e -> DIRECTIONS.get((size + e.index + 2) % size))
+                .map(e -> e.direction)
+                .findFirst().get();
+    }
+
     public static Direction relative(Direction in, Direction out) {
         int inIndex = DIRECTIONS.stream().filter(e -> e.direction == in).mapToInt(e -> e.index).findFirst().getAsInt();
         int outIndex = DIRECTIONS.stream().filter(e -> e.direction == out).mapToInt(e -> e.index).findFirst().getAsInt();
