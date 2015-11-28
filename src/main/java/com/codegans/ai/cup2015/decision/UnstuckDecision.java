@@ -122,7 +122,7 @@ public class UnstuckDecision implements Decision {
                     && collisionDetector.hasBackwardCollision(self);
         } else {
             return speed < 1.0D
-                    && self.getEnginePower() * 10 > 2.0D
+                    && self.getEnginePower() * 10 > 7.0D
                     && collisionDetector.hasFrontalCollision(self);
         }
     }
