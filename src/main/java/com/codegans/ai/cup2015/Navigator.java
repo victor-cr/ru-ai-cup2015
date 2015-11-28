@@ -25,7 +25,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.lang.StrictMath.*;
+import static java.lang.StrictMath.PI;
+import static java.lang.StrictMath.cos;
+import static java.lang.StrictMath.sin;
 
 /**
  * JavaDoc here
@@ -72,13 +74,13 @@ public class Navigator {
         Tile current = startTile;
         Collection<TileInfo> tiles = new ArrayList<>();
 
-        while (current != startTile.prev) {
+        do {
             if (current.x == x && current.y == y) {
                 tiles.add(current.create());
             }
 
             current = current.next;
-        }
+        } while (current != startTile);
 
         return tiles;
     }

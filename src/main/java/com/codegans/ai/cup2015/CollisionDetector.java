@@ -40,8 +40,8 @@ public class CollisionDetector {
         return getNeighbourCars(car, zone).anyMatch(e -> true) || getNeighbourWalls(car, zone).anyMatch(e -> true);
     }
 
-    public boolean hasFrontalCollision(Car car) {
-        Rectangle zone = new Rectangle(car).addHeight(radius).topHalf();
+    public boolean hasFrontalCollision(Car car, double range) {
+        Rectangle zone = new Rectangle(car).addHeight(range).topHalf();
 
         boolean cars = getNeighbourCars(car, zone).anyMatch(e -> true);
         boolean walls = getNeighbourWalls(car, zone).anyMatch(e -> true);
@@ -60,6 +60,10 @@ public class CollisionDetector {
         }
 
         return cars || walls || columns;
+    }
+
+    public boolean hasFrontalCollision(Car car) {
+        return hasFrontalCollision(car, radius);
     }
 
     public boolean hasBackwardCollision(Car car) {
@@ -88,25 +92,33 @@ public class CollisionDetector {
         return getNeighbourCars(car, new Rectangle(car, radius)).collect(Collectors.toList());
     }
 
+    public Collection<Line> getNeighbourWalls(Car car, double range) {
+        return getNeighbourWalls(car, new Rectangle(car, range)).collect(Collectors.toList());
+    }
+
     public Collection<Line> getNeighbourWalls(Car car) {
-        return getNeighbourWalls(car, new Rectangle(car, radius)).collect(Collectors.toList());
+        return getNeighbourWalls(car, radius);
+    }
+
+    public Collection<Column> getNeighbourColumns(Car car, double range) {
+        return getNeighbourColumns(car, new Rectangle(car, range)).collect(Collectors.toList());
     }
 
     public Collection<Column> getNeighbourColumns(Car car) {
-        return getNeighbourColumns(car, new Rectangle(car, radius)).collect(Collectors.toList());
+        return getNeighbourColumns(car, radius);
     }
 
-    private Stream<Car> getNeighbourCars(Car car, Rectangle zone) {
+    public Stream<Car> getNeighbourCars(Car car, Rectangle zone) {
         return Arrays.stream(world.getCars())
                 .filter(e -> e.getId() != car.getId())
                 .filter(e -> zone.hasCollision(new Rectangle(e)));
     }
 
-    private Stream<Line> getNeighbourWalls(Car car, Rectangle zone) {
+    public Stream<Line> getNeighbourWalls(Car car, Rectangle zone) {
         return navigator.getCurrentTile(car).walls.stream().filter(zone::hasCollision);
     }
 
-    private Stream<Column> getNeighbourColumns(Car car, Rectangle zone) {
+    public Stream<Column> getNeighbourColumns(Car car, Rectangle zone) {
         return navigator.getCurrentTile(car).getColumns().stream().filter(e -> zone.getLines().stream().anyMatch(e::crosses));
     }
 }

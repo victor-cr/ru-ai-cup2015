@@ -33,14 +33,26 @@ public class DiagonalMoveDecision implements Decision {
         TileInfo current = navigator.getCurrentTile(self);
         TileInfo nextTurn = navigator.getNextTurnTile(self);
 
-        if (abs(current.x - nextTurn.x) + abs(current.y - nextTurn.y) == 1 && current.in == MathUtil.opposite(nextTurn.out)) {
-            Marker marker = nextTurn.markers.stream().skip(nextTurn.markers.size() - 1).findAny().get();
+        if (accept(current, nextTurn)) {
+            TileInfo turnTile = navigator.getTileOptions(nextTurn.x, nextTurn.y).stream()
+                    .filter(e -> e.in == nextTurn.in && e.out == nextTurn.out)
+                    .findFirst().get();
 
-            Point target = marker.left.shiftTo(marker.right, 0);
+            TileInfo tile = navigator.getNextTile(turnTile.x, turnTile.y, turnTile.index);
 
-            return Arrays.asList(new SpeedAction(Priority.HIGH, 1.0D), new MoveAction(Priority.HIGH, self, target.x, target.y));
+            if (accept(nextTurn, tile)) {
+                Marker marker = nextTurn.markers.stream().skip(nextTurn.markers.size() - 1).findAny().get();
+
+                Point target = marker.left.shiftTo(marker.right, 0);
+
+                return Arrays.asList(new SpeedAction(Priority.HIGH, 1.0D), new MoveAction(Priority.HIGH, self, target.x, target.y));
+            }
         }
 
         return Collections.emptySet();
+    }
+
+    private static boolean accept(TileInfo current, TileInfo next) {
+        return abs(current.x - next.x) + abs(current.y - next.y) == 1 && current.in == MathUtil.opposite(next.out);
     }
 }
