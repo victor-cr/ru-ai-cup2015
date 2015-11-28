@@ -36,9 +36,9 @@ public class DiagonalMoveDecision implements Decision {
         if (abs(current.x - nextTurn.x) + abs(current.y - nextTurn.y) == 1 && current.in == MathUtil.opposite(nextTurn.out)) {
             Marker marker = nextTurn.markers.stream().skip(nextTurn.markers.size() - 1).findAny().get();
 
-            Point target = marker.
+            Point target = marker.left.shiftTo(marker.right, 0);
 
-            return Arrays.asList(new SpeedAction(Priority.HIGH, 1.0D), new MoveAction(Priority.HIGH, self, ));
+            return Arrays.asList(new SpeedAction(Priority.HIGH, 1.0D), new MoveAction(Priority.HIGH, self, target.x, target.y));
         }
 
         return Collections.emptySet();

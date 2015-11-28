@@ -8,6 +8,7 @@ import com.codegans.ai.cup2015.decision.ShootDecision;
 import com.codegans.ai.cup2015.decision.SpeedDecision;
 import com.codegans.ai.cup2015.decision.TurnDecision;
 import com.codegans.ai.cup2015.decision.UnstuckDecision;
+import com.codegans.ai.cup2015.intrinsic.DiagonalMoveDecision;
 import com.codegans.ai.cup2015.intrinsic.TooManyIdiotsDecision;
 import com.codegans.ai.cup2015.log.Logger;
 import com.codegans.ai.cup2015.log.LoggerFactory;
@@ -38,7 +39,8 @@ public class StrategyDelegate {
             new ShootDecision(),
 
 
-            new TooManyIdiotsDecision()
+            new TooManyIdiotsDecision(),
+            new DiagonalMoveDecision()
     );
 
     public Collection<Action<?>> debugActions(Car self, World world, Game game, Move move) {
