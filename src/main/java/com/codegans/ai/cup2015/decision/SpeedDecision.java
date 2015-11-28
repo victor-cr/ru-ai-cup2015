@@ -50,7 +50,7 @@ public class SpeedDecision implements Decision {
             log.printf("Decelerating: %.3f (-%f)%n", power, delta);
         }
 
-        return Collections.singleton(new SpeedAction(Priority.HIGH, power));
+        return Collections.singleton(new SpeedAction(Priority.NORMAL, power));
 
     }
 }

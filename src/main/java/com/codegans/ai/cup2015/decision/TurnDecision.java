@@ -61,7 +61,7 @@ public class TurnDecision implements Decision {
 
         log.printf("Calculated next point: %s with %.3f%n", target, calc);
 
-        return Collections.singleton(new MoveAction(Priority.HIGH, self, target.x, target.y));
+        return Collections.singleton(new MoveAction(Priority.NORMAL, self, target.x, target.y));
     }
 
     private double bestSide(Direction in, Direction out) {

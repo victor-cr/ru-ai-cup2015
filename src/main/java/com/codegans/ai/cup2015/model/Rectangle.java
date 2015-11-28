@@ -77,16 +77,11 @@ public class Rectangle {
         return new Rectangle(center, width, height + dWidth, angle, cos, sin);
     }
 
-    public boolean isInner(Point point) {
-        return within(getPoints(), point);
-    }
-
     public boolean hasCollision(Rectangle rectangle) {
         Collection<Point> thisPoints = getPoints();
         Collection<Point> thatPoints = rectangle.getPoints();
 
-        return thisPoints.stream().anyMatch(e -> within(thatPoints, e))
-                || thatPoints.stream().anyMatch(e -> within(thisPoints, e));
+        return thisPoints.stream().anyMatch(rectangle::belongs) || thatPoints.stream().anyMatch(this::belongs);
     }
 
     public boolean hasCollision(Line line) {
@@ -99,10 +94,6 @@ public class Rectangle {
 
 
         return count != 0 && count != points.size();
-    }
-
-    public boolean isOuter(Point point) {
-        return !isInner(point);
     }
 
     public Collection<Line> getLines() {
@@ -119,25 +110,20 @@ public class Rectangle {
         );
     }
 
-    private static boolean within(Collection<Point> area, Point point) {
-        Point first = null;
-        Point prev = null;
+    public boolean belongs(Point point) {
+        Point prev = getBottomLeft();
 
-        for (Point current : area) {
-            if (first == null) {
-                first = current;
-            } else {
-                double orientedArea = MathUtil.orientedArea(prev, current, point);
+        for (Point current : getPoints()) {
+            double orientedArea = MathUtil.orientedArea(prev, current, point);
 
-                if (orientedArea < 0) {
-                    return false;
-                }
+            if (orientedArea < 0) {
+                return false;
             }
 
             prev = current;
         }
 
-        return first != null && prev != null && MathUtil.orientedArea(prev, first, point) >= 0;
+        return true;
     }
 
     @Override

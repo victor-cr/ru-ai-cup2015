@@ -29,6 +29,6 @@ public class MoveDecision implements Decision {
 
         Point target = path.stream().map(e -> e.left.shiftTo(e.right, 0)).reduce(new Point(self.getX(), self.getY()), (a, b) -> a.shiftTo(b, 0));
 
-        return Collections.singleton(new MoveAction(Priority.NORMAL, self, target.x, target.y));
+        return Collections.singleton(new MoveAction(Priority.NONE, self, target.x, target.y));
     }
 }
